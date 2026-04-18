@@ -1,0 +1,39 @@
+{
+  "routes": [
+    {
+      "name": "vault-search",
+      "skill": "./skills/vault-search/SKILL.md",
+      "intent": "Find relevant notes and build a compact context pack"
+    },
+    {
+      "name": "vault-context",
+      "skill": "./skills/vault-context/SKILL.md",
+      "intent": "Context search and concise evidence gathering"
+    },
+    {
+      "name": "vault-enrichment",
+      "skill": "./skills/vault-enrichment/SKILL.md",
+      "intent": "Enrich notes with durable knowledge and links"
+    },
+    {
+      "name": "vault-structure",
+      "skill": "./skills/vault-structure/SKILL.md",
+      "intent": "Build or repair hubs, folders, and navigation"
+    },
+    {
+      "name": "vault-templates",
+      "skill": "./skills/vault-templates/SKILL.md",
+      "intent": "Create and refine reusable note templates"
+    },
+    {
+      "name": "vault-audit",
+      "skill": "./skills/vault-audit/SKILL.md",
+      "intent": "Detect drift, broken links, duplicates, and stale content"
+    }
+  ],
+  "defaults": {
+    "outputFormat": "markdown",
+    "safetyLevel": "conservative",
+    "editPolicy": "smallest-meaningful-change"
+  }
+}

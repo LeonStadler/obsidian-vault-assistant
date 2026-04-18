@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "obsidianVaultFilesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "${OBSIDIAN_VAULT_PATH}"
+      ]
+    }
+  }
+}

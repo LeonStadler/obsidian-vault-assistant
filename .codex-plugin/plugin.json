@@ -1,0 +1,49 @@
+{
+  "name": "obsidian-vault-assistant",
+  "version": "0.1.2",
+  "description": "Codex-Plugin für Obsidian: Vault durchsuchen, Wissen anreichern, Strukturen aufbauen und veraltete Inhalte markieren.",
+  "author": {
+    "name": "Leon Stadler",
+    "email": "leon@leon-stadler.com",
+    "url": "https://leon-stadler.com"
+  },
+  "homepage": "https://github.com/LeonStadler/obsidian-vault-assistant",
+  "repository": "https://github.com/LeonStadler/obsidian-vault-assistant",
+  "license": "MIT",
+  "keywords": [
+    "obsidian",
+    "vault",
+    "knowledge-management",
+    "markdown",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "hooks": "./hooks.json",
+  "mcpServers": "./.mcp.json",
+  "apps": "./.app.json",
+  "interface": {
+    "displayName": "Obsidian Vault Assistant",
+    "shortDescription": "Vaultwissen anreichern und Struktur pflegen",
+    "longDescription": "A modular Codex plugin for Obsidian vault work: search context, enrich evergreen notes, create templates, repair structure, and audit stale or inconsistent markdown.",
+    "developerName": "Leon Stadler",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Search",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/LeonStadler/obsidian-vault-assistant",
+    "privacyPolicyURL": "https://github.com/LeonStadler/obsidian-vault-assistant/blob/main/docs/legal/privacy-policy.md",
+    "termsOfServiceURL": "https://github.com/LeonStadler/obsidian-vault-assistant/blob/main/docs/legal/terms-of-service.md",
+    "defaultPrompt": [
+      "Durchsuche den Vault nach relevantem Kontext und fasse ihn zusammen.",
+      "Finde veraltete Notizen, kaputte Links und Strukturdrift.",
+      "Erzeuge oder verbessere Vorlagen für wiederkehrende Notiztypen."
+    ],
+    "brandColor": "#0F766E",
+    "composerIcon": "./assets/icon.svg",
+    "logo": "./assets/logo.svg",
+    "screenshots": []
+  }
+}

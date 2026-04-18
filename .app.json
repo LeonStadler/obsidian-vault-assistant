@@ -1,0 +1,10 @@
+{
+  "apps": {
+    "obsidian-vault-assistant": {
+      "type": "assistant",
+      "entry": "README.md",
+      "description": "Obsidian vault enrichment and auditing assistant",
+      "mode": "codex"
+    }
+  }
+}
