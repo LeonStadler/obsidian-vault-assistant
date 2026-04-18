@@ -16,10 +16,3 @@ Codex-Plugin für Obsidian-Vault-Arbeit.
 2. Lege in `~/.agents/plugins/marketplace.json` einen Plugin-Eintrag an (siehe `marketplace.global.example.json`).
 3. Starte Codex neu.
 4. Aktiviere `obsidian-vault-assistant` im Marketplace.
-
-## Veröffentlichung
-
-- Veröffentliche diesen Ordner als eigenes GitHub-Repository.
-- Ziel-Repository: `https://github.com/LeonStadler/obsidian-vault-assistant`
-- Die Legal-Links zeigen direkt auf `docs/legal/*` im Repository.
-- Der Vault selbst braucht dafür keine zusätzlichen Plugin-Dateien außerhalb dieses Ordners.
