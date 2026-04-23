@@ -1,42 +1,20 @@
-# Codex-Installation
+# Installation
 
-## Was du brauchst
+## Requirements
 
-- dieses Plugin unter `~/.codex/plugins/obsidian-vault-assistant`
-- eine globale Marketplace-Datei: `~/.agents/plugins/marketplace.json`
-- das MCP startet aus der Plugin-Datei `.mcp.json` automatisch mit
+- Codex installed and running
+- the plugin cloned to `~/.codex/plugins/obsidian-vault-assistant`
+- a personal marketplace file at `~/.agents/plugins/marketplace.json`
 
-## Schritte
+## Steps
 
-1. Plugin nach `~/.codex/plugins/obsidian-vault-assistant` legen (z. B. per `git clone`).
-2. Falls nicht vorhanden, `~/.agents/plugins/marketplace.json` erstellen.
-3. Den Eintrag aus `marketplace.global.example.json` in die globale Marketplace-Datei übernehmen.
-4. Codex neu starten.
-5. Im Marketplace `obsidian-vault-assistant` aktivieren.
+1. Clone this repository to `~/.codex/plugins/obsidian-vault-assistant`.
+2. Add the entry from `marketplace.global.example.json` to `~/.agents/plugins/marketplace.json`.
+3. Restart Codex.
+4. Enable `obsidian-vault-assistant` in the Marketplace.
 
-## Globale Nutzung
+## What stays local
 
-Wenn du das Repository auf GitHub veröffentlichst, kann jede Person es direkt nach `~/.codex/plugins/obsidian-vault-assistant` klonen und global aktivieren.
-
-## Beispiel-Registry-Eintrag
-
-```json
-{
-    "name": "obsidian-vault-assistant",
-    "source": {
-      "source": "local",
-      "path": "./.codex/plugins/obsidian-vault-assistant"
-    },
-  "policy": {
-    "installation": "AVAILABLE",
-    "authentication": "ON_INSTALL"
-  },
-  "category": "Productivity"
-}
-```
-
-## Kurz erklärt
-
-- `docs/legal/` enthält die Texte, die du öffentlich verlinken kannst.
-- `marketplace.global.example.json` ist die Vorlage für die globale Codex-Registry.
-- Im Vault selbst muss dafür keine zusätzliche Plugin-Datei außerhalb dieses Ordners liegen.
+- Vault content is read from your local machine.
+- The MCP server reads only the directories you allow.
+- Nothing is sent outside your machine unless you connect other services yourself.
