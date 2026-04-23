@@ -7,6 +7,7 @@ Codex-Plugin für Obsidian-Vault-Arbeit.
 - `.codex-plugin/plugin.json` als Codex-Manifest
 - `skills/` mit den Kernfunktionen
 - `hooks.json` für Skill-Routing
+- `.mcp.json` für den Obsidian-Vault-Filesystem-MCP
 - `docs/legal/` für Datenschutzerklärung und Nutzungsbedingungen
 - `INSTALL.md` für globale Installation
 

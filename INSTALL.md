@@ -4,6 +4,7 @@
 
 - dieses Plugin unter `~/.codex/plugins/obsidian-vault-assistant`
 - eine globale Marketplace-Datei: `~/.agents/plugins/marketplace.json`
+- das MCP startet aus der Plugin-Datei `.mcp.json` automatisch mit
 
 ## Schritte
 

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "obsidianVaultFilesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/leonstadler/Documents/Obsidian Vault"
+      ]
+    }
+  }
+}
