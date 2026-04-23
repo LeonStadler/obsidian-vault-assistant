@@ -1,6 +1,6 @@
 {
   "name": "obsidian-vault-assistant",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Codex-Plugin für Obsidian: Vault durchsuchen, Wissen anreichern, Strukturen aufbauen und veraltete Inhalte markieren.",
   "author": {
     "name": "Leon Stadler",
@@ -19,7 +19,6 @@
   ],
   "skills": "./skills/",
   "hooks": "./hooks.json",
-  "mcpServers": "./.mcp.json",
   "apps": "./.app.json",
   "interface": {
     "displayName": "Obsidian Vault Assistant",

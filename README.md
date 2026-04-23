@@ -12,7 +12,7 @@ Codex-Plugin für Obsidian-Vault-Arbeit.
 
 ## Installation in Codex
 
-1. Klone dieses Repository nach `~/plugins/obsidian-vault-assistant`.
+1. Klone dieses Repository nach `~/.codex/plugins/obsidian-vault-assistant`.
 2. Lege in `~/.agents/plugins/marketplace.json` einen Plugin-Eintrag an (siehe `marketplace.global.example.json`).
 3. Starte Codex neu.
 4. Aktiviere `obsidian-vault-assistant` im Marketplace.

@@ -2,12 +2,12 @@
 
 ## Was du brauchst
 
-- dieses Plugin unter `~/plugins/obsidian-vault-assistant`
+- dieses Plugin unter `~/.codex/plugins/obsidian-vault-assistant`
 - eine globale Marketplace-Datei: `~/.agents/plugins/marketplace.json`
 
 ## Schritte
 
-1. Plugin nach `~/plugins/obsidian-vault-assistant` legen (z. B. per `git clone`).
+1. Plugin nach `~/.codex/plugins/obsidian-vault-assistant` legen (z. B. per `git clone`).
 2. Falls nicht vorhanden, `~/.agents/plugins/marketplace.json` erstellen.
 3. Den Eintrag aus `marketplace.global.example.json` in die globale Marketplace-Datei übernehmen.
 4. Codex neu starten.
@@ -15,17 +15,17 @@
 
 ## Globale Nutzung
 
-Wenn du das Repository auf GitHub veröffentlichst, kann jede Person es direkt nach `~/plugins/obsidian-vault-assistant` klonen und global aktivieren.
+Wenn du das Repository auf GitHub veröffentlichst, kann jede Person es direkt nach `~/.codex/plugins/obsidian-vault-assistant` klonen und global aktivieren.
 
 ## Beispiel-Registry-Eintrag
 
 ```json
 {
-  "name": "obsidian-vault-assistant",
-  "source": {
-    "source": "local",
-    "path": "/Users/DEIN_USER/plugins/obsidian-vault-assistant"
-  },
+    "name": "obsidian-vault-assistant",
+    "source": {
+      "source": "local",
+      "path": "./.codex/plugins/obsidian-vault-assistant"
+    },
   "policy": {
     "installation": "AVAILABLE",
     "authentication": "ON_INSTALL"
