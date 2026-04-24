@@ -1,12 +1,15 @@
 {
   "mcpServers": {
     "obsidianVaultFilesystem": {
-      "command": "npx",
+      "command": "/opt/homebrew/bin/npx",
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
         "/Users/leonstadler/Documents/Obsidian Vault"
-      ]
+      ],
+      "env": {
+        "NPM_CONFIG_CACHE": "/tmp/codex-npm-cache"
+      }
     }
   }
 }
