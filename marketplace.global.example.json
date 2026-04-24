@@ -8,7 +8,7 @@
       "name": "obsidian-vault-assistant",
       "source": {
         "source": "local",
-        "path": "./.codex/plugins/obsidian-vault-assistant"
+        "path": "/Users/DEIN_USER/.codex/plugins/obsidian-vault-assistant"
       },
       "policy": {
         "installation": "AVAILABLE",

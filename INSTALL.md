@@ -13,6 +13,12 @@
 3. Restart Codex.
 4. Enable `obsidian-vault-assistant` in the Marketplace.
 
+Example source path:
+
+```json
+"/Users/DEIN_USER/.codex/plugins/obsidian-vault-assistant"
+```
+
 ## What stays local
 
 - Vault content is read from your local machine.
