@@ -1,6 +1,6 @@
 {
   "name": "obsidian-vault-assistant",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Codex plugin for Obsidian vaults: search context, enrich notes, build structure, and flag stale content.",
   "author": {
     "name": "Leon Stadler",
@@ -26,9 +26,9 @@
   "mcpServers": "./.mcp.json",
   "apps": "./.app.json",
   "interface": {
-    "displayName": "Obsidian Vault Assistant",
+    "displayName": "Vault Companion",
     "shortDescription": "Search, structure, and enrich an Obsidian vault locally",
-    "longDescription": "A modular Codex plugin for local Obsidian vault work: search context, enrich evergreen notes, create templates, repair structure, and audit stale or inconsistent markdown.",
+    "longDescription": "A modular Codex plugin for local Obsidian vault work: search context, enrich evergreen notes, create templates, repair structure, and audit stale or inconsistent markdown. Independent software, not affiliated with Obsidian.",
     "developerName": "Leon Stadler",
     "category": "Productivity",
     "capabilities": [

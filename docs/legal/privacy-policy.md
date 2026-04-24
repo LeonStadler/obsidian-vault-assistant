@@ -1,85 +1,129 @@
-# Datenschutzerklärung
+# Privacy Policy
 
-**Hinweis:** Diese Vorlage ist keine Rechtsberatung. Bitte prüfe sie vor der Veröffentlichung rechtlich, besonders wenn du externe Dienste, Telemetrie oder Analysen einsetzt.
+**Last updated:** 2026-04-24
 
-## Verantwortlicher
+This Privacy Policy explains how the `obsidian-vault-assistant` plugin handles information when you use it.
 
-Verantwortlich für dieses Plugin und die dazugehörigen Veröffentlichungsseiten ist:
+## 1. Controller
+
+For the purpose of this repository and the plugin distribution, the responsible party is:
 
 - Leon Stadler
 - Repository: `https://github.com/LeonStadler/obsidian-vault-assistant`
-- Kontakt: über die im späteren Repository oder auf der Website veröffentlichte E-Mail-Adresse
+- Contact: the email address or contact method published in the repository or project website, if any
 
-## Zweck der Datenverarbeitung
+## 2. Scope
 
-Dieses Plugin ist dafür gedacht, einen Obsidian-Vault zu durchsuchen, Inhalte zu verdichten, Notizen zu ergänzen, Strukturen zu verbessern und Vorlagen oder Audits zu unterstützen.
+This policy applies to:
 
-Dabei können folgende Daten verarbeitet werden:
+- the Codex plugin `obsidian-vault-assistant`
+- the files in this repository
+- the documentation and legal pages published with the plugin
 
-- Notizinhalte
-- Notiztitel und Dateinamen
-- Wikilinks und Pfade
-- Metadaten aus dem Vault
-- vom Nutzer bereitgestellte Anweisungen
+It does not govern third-party services that you choose to connect separately.
 
-## Verarbeitung im lokalen Vault
+## 3. Information Processed
 
-Sofern nicht anders konfiguriert, arbeitet das Plugin mit den im Vault vorhandenen Dateien und Metadaten.
+The plugin is designed for local vault work. Depending on how you use it, it may process:
 
-Die Verarbeitung erfolgt dabei lokal auf dem jeweiligen System, solange keine externe Funktion, kein externer Connector und kein externer Codex-Workflow aktiv genutzt wird.
+- note content
+- note titles and file names
+- wikilinks and internal paths
+- vault metadata
+- prompts and instructions you enter
+- output generated from your vault content
 
-## Externe Verarbeitung
+If you enable external services yourself, those services may also receive the data required to perform the requested task.
 
-Wenn du Codex, OpenAI-Dienste, MCP-Server, externe Apps oder andere angebundene Dienste nutzt, können ausgewählte Inhalte an diese Dienste übertragen und dort verarbeitet werden.
+## 4. How Data Is Processed
 
-Das betrifft insbesondere:
+The plugin is intended to operate locally on your machine.
 
-- vom Nutzer angeforderte Kontextauszüge
-- Inhalte, die zur Bearbeitung an Codex gesendet werden
-- Daten, die über konfigurierte MCP- oder App-Integrationen verarbeitet werden
+By default:
 
-Für solche externen Verarbeitungen gelten zusätzlich die Datenschutz- und Nutzungsbestimmungen der jeweiligen Anbieter.
+- the plugin reads files from the vault directories you allow
+- the plugin does not intentionally send vault content to third parties
+- the plugin does not maintain its own remote user database
 
-## Speicherdauer
+If you connect Codex, OpenAI services, MCP servers, or any other external tool, the content you choose to send may be processed by those services according to their own terms and privacy policies.
 
-Dieses Plugin selbst speichert grundsätzlich keine eigenen Nutzerdaten auf Servern des Plugins.
+## 5. Purpose of Processing
 
-Die Speicherdauer richtet sich nach:
+Data is processed only to provide the plugin functionality, including:
 
-- den lokalen Dateien im Vault
-- der Codex-Konfiguration und ihren lokalen Caches
-- den Aufbewahrungsregeln externer Dienste, falls solche genutzt werden
+- searching for relevant context
+- enriching notes with structure, links, or durable knowledge
+- generating templates
+- detecting stale content, broken links, and structural drift
+- producing summaries or suggested edits
 
-## Weitergabe an Dritte
+## 6. Legal Bases
 
-Eine Weitergabe an Dritte erfolgt nur, wenn:
+If personal data is processed and applicable law requires a legal basis, the basis may include:
 
-- du externe Dienste aktiv nutzt
-- dies für die angeforderte Funktion erforderlich ist
-- eine gesetzliche Pflicht besteht
+- your consent
+- performance of a contract or pre-contractual request
+- legitimate interests in maintaining and improving the plugin
+- compliance with legal obligations
 
-## Lokale Sicherheit
+The exact legal basis depends on the deployment, jurisdiction, and how you use the plugin.
 
-Empfohlen wird:
+## 7. Retention
 
-- den Zugriff auf den Vault bewusst zu steuern
-- keine sensiblen Inhalte unnötig an externe Dienste zu senden
-- vor jeder Änderung die betroffenen Dateien zu prüfen
-- das Plugin nur aus vertrauenswürdigen Quellen zu installieren
+The plugin itself is not designed to store user data on a remote service.
 
-## Rechte betroffener Personen
+Retention depends on:
 
-Wenn personenbezogene Daten verarbeitet werden, können je nach Rechtslage insbesondere folgende Rechte bestehen:
+- the files in your local vault
+- your local Codex configuration and cache
+- any external service you choose to use
 
-- Auskunft
-- Berichtigung
-- Löschung
-- Einschränkung der Verarbeitung
-- Widerspruch
-- Datenübertragbarkeit
+If you delete vault files, the plugin no longer has access to them unless they are restored from another source.
 
-Wende dich dazu an den oben genannten Verantwortlichen.
+## 8. Disclosure to Third Parties
 
-## Änderungen dieser Erklärung
+The plugin does not intentionally disclose your vault content to third parties unless:
 
-Diese Datenschutzerklärung kann aktualisiert werden, wenn sich das Plugin, die Veröffentlichung oder die genutzten Dienste ändern.
+- you explicitly connect a third-party service
+- you explicitly instruct the plugin to use such a service
+- disclosure is required by law
+
+## 9. Security
+
+No software can guarantee complete security. Recommended precautions:
+
+- review changes before applying them
+- limit access to vaults that contain sensitive information
+- do not connect external services unless you trust them
+- keep Codex and your operating system up to date
+- use this plugin only in environments you control
+
+## 10. International Transfers
+
+If you connect third-party services, data may be transferred to jurisdictions governed by those providers. Those transfers are controlled by the terms and settings of those services, not by this plugin.
+
+## 11. Your Rights
+
+Depending on your location, you may have rights regarding personal data, such as:
+
+- access
+- correction
+- deletion
+- restriction
+- objection
+- portability
+
+To exercise rights related to this repository or plugin distribution, contact the responsible party listed above.
+
+## 12. Children
+
+This plugin is not directed to children, and it is not intended for use by minors without appropriate supervision and permission.
+
+## 13. Changes to This Policy
+
+This policy may be updated if the plugin, distribution model, or integrations change.
+
+## 14. Relationship to Third-Party Terms
+
+If you use Codex, OpenAI services, GitHub, MCP servers, or any other connected service, their own terms and privacy policies also apply.
+

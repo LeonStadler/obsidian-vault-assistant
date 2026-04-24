@@ -1,4 +1,6 @@
-# Obsidian Vault Assistant
+# Vault Companion
+
+Formerly known as Obsidian Vault Assistant.
 
 Codex plugin for working with Obsidian vaults locally.
 
@@ -13,6 +15,10 @@ Codex plugin for working with Obsidian vaults locally.
 ## Privacy
 
 This plugin is designed to run locally. Vault content stays on your machine unless you explicitly connect other external services yourself.
+
+## Trademark
+
+This project is independent software and is not affiliated with, endorsed by, or sponsored by Obsidian or Dynalist Inc. "Obsidian" is used here only to describe compatibility.
 
 ## Includes
 

@@ -1,71 +1,108 @@
-# Nutzungsbedingungen
+# Terms of Service
 
-**Hinweis:** Diese Vorlage ist keine Rechtsberatung. Bitte prüfe sie vor der Veröffentlichung rechtlich.
+**Last updated:** 2026-04-24
 
-## Geltungsbereich
+These Terms of Service apply to the `obsidian-vault-assistant` plugin, the repository, and the related documentation and release materials.
 
-Diese Nutzungsbedingungen gelten für das Codex-Plugin `obsidian-vault-assistant`, seine Dokumentation und die dazugehörigen Veröffentlichungsseiten.
+## 1. Acceptance
 
-## Leistungsbeschreibung
+By installing, enabling, downloading, cloning, or using this plugin, you agree to these Terms.
 
-Das Plugin unterstützt beim:
+If you do not agree with these Terms, do not use the plugin.
 
-- Suchen von Kontext im Obsidian-Vault
-- Anreichern bestehender Notizen
-- Erstellen von Vorlagen
-- Prüfen von Struktur und Links
-- Markieren veralteter oder inkonsistenter Inhalte
+## 2. Description of the Plugin
 
-## Nutzungsvoraussetzungen
+The plugin is a local Codex plugin for Obsidian vault work. It is intended to help users:
 
-Du darfst das Plugin nur nutzen, wenn du:
+- search for context inside a vault
+- enrich notes with structure and links
+- create reusable templates
+- audit stale content and broken links
+- improve vault organization and markdown consistency
 
-- berechtigt bist, auf den betreffenden Vault zuzugreifen
-- die Inhalte dort bearbeiten darfst
-- die Verantwortung für die von dir ausgelösten Änderungen übernimmst
+## 3. Local Use
 
-## Pflichten der Nutzer
+The plugin is designed to operate locally on your machine.
 
-Du verpflichtest dich:
+You are responsible for:
 
-- Änderungen vor dem Übernehmen zu prüfen
-- keine Inhalte ohne Berechtigung zu verarbeiten
-- keine sensiblen Daten unnötig an externe Dienste zu senden
-- das Plugin nicht missbräuchlich zu verwenden
+- the vaults you connect
+- the files you choose to process
+- the external services you choose to enable
+- reviewing any output before accepting changes
 
-## Keine Garantie
+## 4. Eligibility
 
-Das Plugin wird ohne Gewähr bereitgestellt.
+You may use the plugin only if:
 
-Insbesondere wird nicht garantiert, dass:
+- you have the legal right to access the vault or files you process
+- you have the right to modify the affected content
+- your use complies with applicable law and any internal policies that apply to the data
 
-- alle Inhalte fehlerfrei erkannt werden
-- alle Links automatisch korrekt repariert werden
-- jede Strukturentscheidung für jeden Vault passend ist
-- externe Dienste jederzeit verfügbar sind
+## 5. User Responsibilities
 
-## Haftung
+You agree not to use the plugin to:
 
-Soweit rechtlich zulässig, wird die Haftung für direkte oder indirekte Schäden ausgeschlossen, die aus der Nutzung des Plugins entstehen.
+- access data you are not authorized to access
+- process data in violation of law or contract
+- intentionally send sensitive data to services you do not trust
+- misuse the plugin or attempt to interfere with its operation
 
-Das gilt besonders für:
+You are solely responsible for the consequences of actions you choose to apply.
 
-- versehentliche Inhaltsänderungen
-- fehlerhafte Strukturvorschläge
-- unvollständige Kontextauswertung
-- Probleme durch externe Integrationen
+## 6. No Warranty
 
-## Geistiges Eigentum
+The plugin is provided on an `as is` and `as available` basis, without warranties of any kind, whether express, implied, or statutory.
 
-Soweit nicht anders angegeben, bleibt der Quellcode und die Dokumentation in deinem Eigentum bzw. unter der von dir gewählten Open-Source-Lizenz.
+To the maximum extent permitted by law, the authors disclaim all warranties, including but not limited to:
 
-Wenn du das Plugin veröffentlichst, musst du sicherstellen, dass du die Rechte an allen mitgelieferten Dateien besitzt.
+- merchantability
+- fitness for a particular purpose
+- non-infringement
+- accuracy
+- completeness
+- uninterrupted availability
 
-## Externe Dienste
+## 7. Limitation of Liability
 
-Wenn das Plugin mit Codex, OpenAI, GitHub Pages, MCP-Servern oder anderen Diensten verbunden wird, gelten zusätzlich deren jeweilige Bedingungen.
+To the maximum extent permitted by law, the authors and maintainers are not liable for any direct, indirect, incidental, special, consequential, exemplary, or punitive damages arising out of or relating to your use of the plugin.
 
-## Änderungen
+This includes, without limitation:
 
-Diese Nutzungsbedingungen können angepasst werden, wenn sich der Funktionsumfang, die Veröffentlichung oder die technischen Integrationen ändern.
+- accidental note edits
+- data loss
+- broken links
+- incorrect structure suggestions
+- incomplete or inaccurate context retrieval
+- problems caused by external services or integrations
+
+If applicable law does not allow some of these exclusions, the exclusions apply only to the extent permitted.
+
+## 8. Third-Party Services
+
+If you connect Codex, OpenAI services, GitHub, MCP servers, or any other third-party tools, your use of those services is governed by their own terms and privacy policies.
+
+The plugin does not control and is not responsible for third-party services.
+
+## 9. Intellectual Property
+
+Unless otherwise noted, the repository content is made available under the license stated in the repository.
+
+You are responsible for ensuring that you have the rights to any content you add, process, or publish using the plugin.
+
+## 10. Support and Availability
+
+The plugin may be changed, suspended, or discontinued at any time. No guarantee is made that any feature, integration, or file format will remain available forever.
+
+## 11. Changes
+
+These Terms may be updated from time to time. Continued use of the plugin after an update means you accept the updated Terms.
+
+## 12. Governing Law
+
+If a governing law is required, it is determined by the applicable law of the responsible party or the law required by the jurisdiction in which the plugin is offered, unless a different rule is required by mandatory law.
+
+## 13. Contact
+
+Questions about these Terms can be directed to the contact information published in the repository or project website.
 
