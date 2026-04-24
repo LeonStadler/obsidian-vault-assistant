@@ -1,7 +1,7 @@
 {
   "name": "obsidian-vault-assistant",
-  "version": "0.1.7",
-  "description": "Codex plugin for Obsidian vaults: search context, enrich notes, build structure, and flag stale content.",
+  "version": "0.1.2",
+  "description": "Codex-Plugin für Obsidian: Vault durchsuchen, Wissen anreichern, Strukturen aufbauen und veraltete Inhalte markieren.",
   "author": {
     "name": "Leon Stadler",
     "email": "leon@leon-stadler.com",
@@ -13,13 +13,9 @@
   "keywords": [
     "obsidian",
     "vault",
-    "personal-knowledge-management",
     "knowledge-management",
     "markdown",
-    "codex",
-    "mcp",
-    "filesystem",
-    "second-brain"
+    "codex"
   ],
   "skills": "./skills/",
   "hooks": "./hooks.json",
@@ -27,8 +23,8 @@
   "apps": "./.app.json",
   "interface": {
     "displayName": "Obsidian Vault Assistant",
-    "shortDescription": "Search, structure, and enrich an Obsidian vault locally",
-    "longDescription": "A modular Codex plugin for local Obsidian vault work: search context, enrich evergreen notes, create templates, repair structure, and audit stale or inconsistent markdown. Independent software, not affiliated with Obsidian.",
+    "shortDescription": "Vaultwissen anreichern und Struktur pflegen",
+    "longDescription": "A modular Codex plugin for Obsidian vault work: search context, enrich evergreen notes, create templates, repair structure, and audit stale or inconsistent markdown.",
     "developerName": "Leon Stadler",
     "category": "Productivity",
     "capabilities": [
@@ -41,9 +37,9 @@
     "privacyPolicyURL": "https://github.com/LeonStadler/obsidian-vault-assistant/blob/main/docs/legal/privacy-policy.md",
     "termsOfServiceURL": "https://github.com/LeonStadler/obsidian-vault-assistant/blob/main/docs/legal/terms-of-service.md",
     "defaultPrompt": [
-      "Search the vault for relevant context and summarize it.",
-      "Find stale notes, broken links, and structural drift.",
-      "Generate or improve templates for recurring note types."
+      "Durchsuche den Vault nach relevantem Kontext und fasse ihn zusammen.",
+      "Finde veraltete Notizen, kaputte Links und Strukturdrift.",
+      "Erzeuge oder verbessere Vorlagen für wiederkehrende Notiztypen."
     ],
     "brandColor": "#0F766E",
     "composerIcon": "./assets/icon.svg",
