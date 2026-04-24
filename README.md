@@ -1,6 +1,4 @@
-# Vault Companion
-
-Formerly known as Obsidian Vault Assistant.
+# Obsidian Vault Assistant
 
 Codex plugin for working with Obsidian vaults locally.
 
