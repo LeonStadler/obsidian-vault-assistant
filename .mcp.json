@@ -3,6 +3,8 @@
     "obsidianVaultFilesystem": {
       "command": "npx",
       "args": [
+        "--cache",
+        "/tmp/codex-npm-cache",
         "-y",
         "@modelcontextprotocol/server-filesystem",
         "${OBSIDIAN_VAULT_PATH}"

@@ -1,14 +1,14 @@
 {
-  "name": "local-plugins",
+  "name": "obsidian-vault-assistant",
   "interface": {
-    "displayName": "Local Plugins"
+    "displayName": "Obsidian Vault Assistant"
   },
   "plugins": [
     {
       "name": "obsidian-vault-assistant",
       "source": {
         "source": "local",
-        "path": "./.codex/plugins/obsidian-vault-assistant"
+        "path": "./"
       },
       "policy": {
         "installation": "AVAILABLE",

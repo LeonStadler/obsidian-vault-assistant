@@ -1,0 +1,7 @@
+interface:
+  display_name: "Vault Enrichment"
+  short_description: "Improve notes with durable context"
+  default_prompt: "Use $vault-enrichment to improve an Obsidian note with durable context, links, structure, and corrections."
+
+policy:
+  allow_implicit_invocation: true
