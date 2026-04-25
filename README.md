@@ -52,6 +52,11 @@ Restart Codex and enable `obsidian-vault-assistant`.
 
 For manual setup, see `INSTALL.md`.
 
+## Legal
+
+- [Privacy Policy](docs/legal/privacy-policy.md)
+- The code is licensed under [MIT](LICENSE)
+
 ## Notes
 
 - This repository is meant to be shared as a GitHub Codex plugin repo.
