@@ -14,11 +14,11 @@ Current version: `0.2.0`
 
 ## Privacy
 
-This plugin is designed to run locally. Vault content stays on your machine unless you explicitly connect other external services yourself.
+This plugin is designed to run locally. Vault content stays on your machine unless you explicitly connect other external services.
 
 ## Trademark
 
-This project is independent software and is not affiliated with, endorsed by, or sponsored by Obsidian or Dynalist Inc. "Obsidian" is used here only to describe compatibility.
+This project is independent software and is not affiliated with, endorsed by, or sponsored by Obsidian or Dynalist Inc. "Obsidian" is used only to describe compatibility.
 
 ## Includes
 
@@ -28,7 +28,7 @@ This project is independent software and is not affiliated with, endorsed by, or
 - `.mcp.json` for the vault filesystem MCP template
 - `scripts/install-local.sh` for local plugin and MCP setup
 - `.agents/plugins/marketplace.json` for GitHub marketplace distribution
-- `docs/legal/` for privacy policy and terms
+- `docs/legal/` for the privacy policy
 - `INSTALL.md` for setup instructions
 
 ## Installation
@@ -61,4 +61,4 @@ For manual setup, see `INSTALL.md`.
 
 - This repository is meant to be shared as a GitHub Codex plugin repo.
 - The plugin is self-contained inside this folder.
-- All work stays local unless you choose to connect additional tools.
+- All work stays local unless you choose to connect other tools.
