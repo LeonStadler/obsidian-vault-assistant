@@ -2,7 +2,7 @@
 
 Codex plugin for working with Obsidian vaults locally.
 
-Current version: `0.3.0`
+Current version: `0.3.1`
 
 ## What it does
 
@@ -24,8 +24,7 @@ This project is independent software and is not affiliated with, endorsed by, or
 
 - `.codex-plugin/plugin.json` for the Codex manifest
 - `skills/` for the core tasks
-- `hooks.json` for skill routing
-- `.mcp.json` for the vault filesystem MCP wrapper
+- `.mcp.json` as MCP reference for manual `codex mcp add`
 - `scripts/install-local.sh` for local plugin and vault-path setup
 - `scripts/start-vault-mcp.sh` for MCP startup from `.vault-path`
 - `.agents/plugins/marketplace.json` for GitHub marketplace distribution

@@ -2,7 +2,9 @@
   "mcpServers": {
     "obsidianVaultFilesystem": {
       "command": "bash",
-      "args": ["scripts/start-vault-mcp.sh"]
+      "args": [
+        "/absolute/path/to/.codex/plugins/obsidian-vault-assistant/scripts/start-vault-mcp.sh"
+      ]
     }
   }
 }

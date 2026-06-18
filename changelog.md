@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.1 — 2026-06-18
+
+### Fixes
+
+- `.codex-plugin/plugin.json`: ungültiges `hooks.json`-Routing entfernt; Skills werden direkt über `skills/` geladen
+- `hooks.json`: gelöscht, weil Codex `hooks` statt `routes` erwartet
+- `scripts/start-vault-mcp.sh`: liest `.vault-path` aus dem stabilen Install-Pfad unter `~/.codex/plugins/obsidian-vault-assistant`
+- `scripts/start-vault-mcp.sh`: eigener npm-Cache unter `/tmp/codex-obsidian-vault-npm-cache`
+- MCP-Registrierung nur noch über `scripts/install-local.sh` mit absolutem Script-Pfad statt Plugin-`.mcp.json`
+
 ## 0.3.0 — 2026-06-18
 
 ### Features

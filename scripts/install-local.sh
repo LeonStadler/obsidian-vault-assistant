@@ -27,7 +27,7 @@ if ! command -v npx >/dev/null 2>&1; then
   exit 69
 fi
 
-mkdir -p "$plugin_dir" "$marketplace_dir" /tmp/codex-npm-cache
+mkdir -p "$plugin_dir" "$marketplace_dir" /tmp/codex-obsidian-vault-npm-cache
 
 if [ "$repo_dir" != "$plugin_dir" ]; then
   rsync -a --delete \

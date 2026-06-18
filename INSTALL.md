@@ -69,11 +69,12 @@ Use the right marketplace path for your install type:
 
 ## MCP behavior
 
-The plugin exposes `obsidianVaultFilesystem` through `.mcp.json`.
+The plugin registers `obsidianVaultFilesystem` through `scripts/install-local.sh`.
 
-- Codex starts `scripts/start-vault-mcp.sh`
-- the script reads `.vault-path`
+- `codex mcp add` points to `scripts/start-vault-mcp.sh` with an absolute path
+- the script reads `.vault-path` from `~/.codex/plugins/obsidian-vault-assistant`
 - the filesystem MCP is scoped to that directory only
+- the plugin manifest does not ship a relative MCP entry, because Codex cannot resolve it reliably from the plugin cache
 
 If MCP calls fail, rerun:
 
