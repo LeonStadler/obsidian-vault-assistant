@@ -11,10 +11,11 @@ Use this skill when the user wants the vault checked for quality, consistency, o
 
 Use the `obsidianVaultFilesystem` MCP server for all vault reads.
 
-- scan the requested area through MCP list and read tools
-- report concrete file paths and exact problems
-- do not delete or rewrite notes unless explicitly asked
-- if MCP is unavailable, tell the user to run `scripts/install-local.sh "/absolute/path/to/Obsidian Vault"` and restart Codex
+- call `list_allowed_directories` first when the allowed vault root is unclear
+- use absolute vault paths such as `$HOME/Documents/Obsidian Vault/...`; relative paths resolve against the MCP process working directory, not the vault root
+- prefer subdirectory `search_files` scans on macOS if a full-vault search returns `EPERM`
+- report concrete file paths and exact problems; do not delete or rewrite notes unless explicitly asked
+- if MCP is unavailable, rerun `scripts/install-local.sh "$HOME/Documents/Obsidian Vault"` and restart the client
 
 ## Workflow
 

@@ -11,9 +11,10 @@ Use this skill when the user asks what the vault already knows, wants a compact 
 
 Use the `obsidianVaultFilesystem` MCP server for all vault file access.
 
-- read, list, search, and inspect files only inside the configured vault directory
-- prefer MCP tools over shell commands for vault reads
-- if MCP is unavailable, tell the user to run `scripts/install-local.sh "/absolute/path/to/Obsidian Vault"` and restart Codex
+- call `list_allowed_directories` first when the allowed vault root is unclear
+- use absolute vault paths such as `$HOME/Documents/Obsidian Vault/...`; relative paths resolve against the MCP process working directory, not the vault root
+- prefer subdirectory `search_files` scans on macOS if a full-vault search returns `EPERM`
+- if MCP is unavailable, rerun `scripts/install-local.sh "$HOME/Documents/Obsidian Vault"` and restart the client
 
 ## Workflow
 

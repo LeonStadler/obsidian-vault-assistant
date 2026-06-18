@@ -1,28 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-codex_home="${CODEX_HOME:-$HOME/.codex}"
-config_dir="$codex_home/plugins/obsidian-vault-assistant"
-vault_path_file="$config_dir/.vault-path"
-npm_cache_dir="/tmp/codex-obsidian-vault-npm-cache"
+plugin_dir="$(cd "$(dirname "$0")/.." && pwd)"
+mcp_server_dir="$plugin_dir/.mcp-server"
+mcp_server_entry="$mcp_server_dir/node_modules/@modelcontextprotocol/server-filesystem/dist/index.js"
+vault_path=""
 
-if [ ! -f "$vault_path_file" ]; then
-  plugin_dir="$(cd "$(dirname "$0")/.." && pwd)"
-  fallback_vault_path_file="$plugin_dir/.vault-path"
-  if [ -f "$fallback_vault_path_file" ]; then
-    vault_path_file="$fallback_vault_path_file"
+if [ "$#" -ge 1 ] && [ -n "$1" ]; then
+  vault_path="$1"
+else
+  vault_path_file="$plugin_dir/.vault-path"
+  if [ -f "$vault_path_file" ]; then
+    vault_path="$(tr -d '\n' < "$vault_path_file")"
   fi
 fi
 
-if [ ! -f "$vault_path_file" ]; then
-  printf 'Vault path not configured. Run: scripts/install-local.sh "/absolute/path/to/Obsidian Vault"\n' >&2
-  exit 78
-fi
-
-vault_path="$(tr -d '\n' < "$vault_path_file")"
-
 if [ -z "$vault_path" ]; then
-  printf 'Vault path file is empty: %s\n' "$vault_path_file" >&2
+  printf 'Vault path missing. Pass it as the first argument or run: scripts/install-local.sh "$HOME/Documents/Obsidian Vault"\n' >&2
   exit 78
 fi
 
@@ -31,6 +25,19 @@ if [ ! -d "$vault_path" ]; then
   exit 66
 fi
 
-mkdir -p "$npm_cache_dir"
+if [ ! -f "$mcp_server_entry" ]; then
+  if ! command -v npm >/dev/null 2>&1; then
+    printf 'MCP server is not installed and npm was not found. Run: scripts/install-local.sh "%s"\n' "$vault_path" >&2
+    exit 69
+  fi
 
-exec npx --cache "$npm_cache_dir" -y @modelcontextprotocol/server-filesystem "$vault_path"
+  mkdir -p "$mcp_server_dir"
+  npm install --prefix "$mcp_server_dir" --no-save @modelcontextprotocol/server-filesystem >/dev/null
+fi
+
+if [ ! -f "$mcp_server_entry" ]; then
+  printf 'MCP server install failed. Run: scripts/install-local.sh "%s"\n' "$vault_path" >&2
+  exit 70
+fi
+
+exec node "$mcp_server_entry" "$vault_path"

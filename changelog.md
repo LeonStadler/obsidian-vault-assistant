@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.3.2 — 2026-06-18
+
+### Features
+
+- vault path is now passed directly when registering the MCP server
+- `mcp.example.json` replaces the old `.mcp.json` template
+
+### Fixes
+
+- `scripts/start-vault-mcp.sh`: starts the filesystem MCP via local `node` install instead of `npx`
+- `scripts/install-local.sh`: registers `codex mcp add ... start-vault-mcp.sh "<vault path>"`
+- `.codex-plugin/plugin.json`: English manifest text for marketplace-facing fields
+- skills and `INSTALL.md`: document portable `$HOME` paths, MCP setup, and macOS `search_files` `EPERM` behavior
+- docs and skills: replace personal example paths with `OWNER`, `YOUR_USER`, and `$HOME`
+
+### Chores
+
+- removed tracked `.mcp.json` template duplicate
+- removed `marketplace.local.example.json`; manual marketplace entry is documented inline in `INSTALL.md`
+- added `scripts/test-vault-mcp.py` smoke test for MCP tools
+- documented local-only files: `.mcp-server/`
+
 ## 0.3.1 — 2026-06-18
 
 ### Fixes

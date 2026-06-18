@@ -1,7 +1,7 @@
 {
   "name": "obsidian-vault-assistant",
-  "version": "0.3.1",
-  "description": "Codex-Plugin für Obsidian: Vault durchsuchen, Wissen anreichern, Strukturen aufbauen und veraltete Inhalte markieren.",
+  "version": "0.3.2",
+  "description": "Codex plugin for Obsidian vaults: search context, enrich notes, improve structure, and audit stale content.",
   "author": {
     "name": "Leon Stadler",
     "email": "contact@leon-stadler.com",
@@ -20,7 +20,7 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Obsidian Vault Assistant",
-    "shortDescription": "Vaultwissen anreichern und Struktur pflegen",
+    "shortDescription": "Enrich vault knowledge and maintain structure",
     "longDescription": "A modular Codex plugin for Obsidian vault work: search context, enrich evergreen notes, create templates, repair structure, and audit stale or inconsistent markdown.",
     "developerName": "Leon Stadler",
     "category": "Productivity",
@@ -28,9 +28,9 @@
     "websiteURL": "https://github.com/LeonStadler/obsidian-vault-assistant",
     "privacyPolicyURL": "https://github.com/LeonStadler/obsidian-vault-assistant/blob/main/docs/legal/privacy-policy.md",
     "defaultPrompt": [
-      "Durchsuche den Vault nach relevantem Kontext und fasse ihn zusammen.",
-      "Finde veraltete Notizen, kaputte Links und Strukturdrift.",
-      "Erzeuge oder verbessere Vorlagen für wiederkehrende Notiztypen."
+      "Search the vault for relevant context and summarize it.",
+      "Find stale notes, broken links, and structural drift.",
+      "Create or improve templates for recurring note types."
     ],
     "brandColor": "#0F766E",
     "composerIcon": "./assets/icon.svg",

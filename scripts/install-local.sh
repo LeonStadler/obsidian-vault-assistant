@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [ "$#" -ne 1 ]; then
-  printf 'Usage: %s "/absolute/path/to/Obsidian Vault"\n' "$0" >&2
+  printf 'Usage: %s "$HOME/Documents/Obsidian Vault"\n' "$0" >&2
   exit 64
 fi
 
@@ -22,24 +22,28 @@ if ! command -v codex >/dev/null 2>&1; then
   exit 69
 fi
 
-if ! command -v npx >/dev/null 2>&1; then
-  printf 'npx was not found in PATH. Install Node.js first.\n' >&2
+if ! command -v npm >/dev/null 2>&1; then
+  printf 'npm was not found in PATH. Install Node.js first.\n' >&2
   exit 69
 fi
 
-mkdir -p "$plugin_dir" "$marketplace_dir" /tmp/codex-obsidian-vault-npm-cache
+mkdir -p "$plugin_dir" "$marketplace_dir"
 
 if [ "$repo_dir" != "$plugin_dir" ]; then
   rsync -a --delete \
     --exclude '.git' \
     --exclude '.gitignore' \
     --exclude '.vault-path' \
+    --exclude '.mcp-server' \
     "$repo_dir/" \
     "$plugin_dir/"
 fi
 
-printf '%s\n' "$vault_path" > "$plugin_dir/.vault-path"
 chmod +x "$plugin_dir/scripts/start-vault-mcp.sh"
+
+mcp_server_dir="$plugin_dir/.mcp-server"
+mkdir -p "$mcp_server_dir"
+npm install --prefix "$mcp_server_dir" --no-save @modelcontextprotocol/server-filesystem
 
 MARKETPLACE_FILE="$marketplace_file" python3 - <<'PY'
 import json
@@ -78,11 +82,11 @@ path.write_text(json.dumps(data, indent=2) + "\n")
 PY
 
 codex mcp remove obsidianVaultFilesystem >/dev/null 2>&1 || true
-codex mcp add obsidianVaultFilesystem -- bash "$plugin_dir/scripts/start-vault-mcp.sh"
+codex mcp add obsidianVaultFilesystem -- bash "$plugin_dir/scripts/start-vault-mcp.sh" "$vault_path"
 
 printf 'Installed Obsidian Vault Assistant.\n'
 printf 'Plugin: %s\n' "$plugin_dir"
 printf 'Vault path: %s\n' "$vault_path"
 printf 'Marketplace: %s\n' "$marketplace_file"
-printf 'MCP: obsidianVaultFilesystem via scripts/start-vault-mcp.sh\n'
+printf 'MCP: obsidianVaultFilesystem -> %s\n' "$vault_path"
 printf 'Restart Codex, then enable the plugin from Local Plugins.\n'

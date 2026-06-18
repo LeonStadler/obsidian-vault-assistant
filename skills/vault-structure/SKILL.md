@@ -11,9 +11,10 @@ Use this skill when the vault needs better navigation, cleaner hierarchy, or rep
 
 Use the `obsidianVaultFilesystem` MCP server for all vault reads and writes.
 
-- inspect hubs, folder notes, and link targets through MCP
+- call `list_allowed_directories` first when the allowed vault root is unclear
+- use absolute vault paths such as `$HOME/Documents/Obsidian Vault/...`; relative paths resolve against the MCP process working directory, not the vault root
 - apply structural edits only after checking affected paths
-- if MCP is unavailable, tell the user to run `scripts/install-local.sh "/absolute/path/to/Obsidian Vault"` and restart Codex
+- if MCP is unavailable, rerun `scripts/install-local.sh "$HOME/Documents/Obsidian Vault"` and restart the client
 
 ## Workflow
 

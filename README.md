@@ -2,7 +2,7 @@
 
 Codex plugin for working with Obsidian vaults locally.
 
-Current version: `0.3.1`
+Current version: `0.3.2`
 
 ## What it does
 
@@ -24,11 +24,10 @@ This project is independent software and is not affiliated with, endorsed by, or
 
 - `.codex-plugin/plugin.json` for the Codex manifest
 - `skills/` for the core tasks
-- `.mcp.json` as MCP reference for manual `codex mcp add`
-- `scripts/install-local.sh` for local plugin and vault-path setup
-- `scripts/start-vault-mcp.sh` for MCP startup from `.vault-path`
+- `mcp.example.json` for Cursor and other MCP clients
+- `scripts/install-local.sh` for local plugin and MCP setup
+- `scripts/start-vault-mcp.sh` for MCP startup with an explicit vault path
 - `.agents/plugins/marketplace.json` for GitHub marketplace distribution
-- `marketplace.local.example.json` for `~/.agents/plugins/marketplace.json`
 - `docs/legal/` for the privacy policy
 - `INSTALL.md` for setup instructions
 
@@ -37,21 +36,23 @@ This project is independent software and is not affiliated with, endorsed by, or
 GitHub marketplace:
 
 ```bash
-codex plugin marketplace add LeonStadler/obsidian-vault-assistant
-scripts/install-local.sh "/absolute/path/to/your/Obsidian Vault"
+codex plugin marketplace add OWNER/obsidian-vault-assistant
+scripts/install-local.sh "$HOME/Documents/Obsidian Vault"
 ```
+
+Replace `OWNER` with the GitHub user or org that hosts the repository.
 
 Local install:
 
 ```bash
-git clone https://github.com/LeonStadler/obsidian-vault-assistant.git ~/.codex/plugins/obsidian-vault-assistant
-cd ~/.codex/plugins/obsidian-vault-assistant
-scripts/install-local.sh "/absolute/path/to/your/Obsidian Vault"
+git clone https://github.com/OWNER/obsidian-vault-assistant.git "$HOME/.codex/plugins/obsidian-vault-assistant"
+cd "$HOME/.codex/plugins/obsidian-vault-assistant"
+scripts/install-local.sh "$HOME/Documents/Obsidian Vault"
 ```
 
 Restart Codex and enable `obsidian-vault-assistant`.
 
-For manual setup, see `INSTALL.md`.
+For Cursor and manual setup, see `INSTALL.md`.
 
 ## Legal
 
