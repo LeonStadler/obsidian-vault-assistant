@@ -1,6 +1,6 @@
 {
   "name": "obsidian-vault-assistant",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Codex-Plugin für Obsidian: Vault durchsuchen, Wissen anreichern, Strukturen aufbauen und veraltete Inhalte markieren.",
   "author": {
     "name": "Leon Stadler",
@@ -26,15 +26,9 @@
     "longDescription": "A modular Codex plugin for Obsidian vault work: search context, enrich evergreen notes, create templates, repair structure, and audit stale or inconsistent markdown.",
     "developerName": "Leon Stadler",
     "category": "Productivity",
-    "capabilities": [
-      "Interactive",
-      "Read",
-      "Search",
-      "Write"
-    ],
+    "capabilities": ["Interactive", "Read", "Search", "Write"],
     "websiteURL": "https://github.com/LeonStadler/obsidian-vault-assistant",
     "privacyPolicyURL": "https://github.com/LeonStadler/obsidian-vault-assistant/blob/main/docs/legal/privacy-policy.md",
-    "termsOfServiceURL": "https://github.com/LeonStadler/obsidian-vault-assistant/blob/main/docs/legal/terms-of-service.md",
     "defaultPrompt": [
       "Durchsuche den Vault nach relevantem Kontext und fasse ihn zusammen.",
       "Finde veraltete Notizen, kaputte Links und Strukturdrift.",

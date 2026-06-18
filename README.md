@@ -2,7 +2,7 @@
 
 Codex plugin for working with Obsidian vaults locally.
 
-Current version: `0.2.0`
+Current version: `0.3.0`
 
 ## What it does
 
@@ -10,7 +10,7 @@ Current version: `0.2.0`
 - enriches notes with structure, links, and durable knowledge
 - creates reusable templates for recurring note types
 - audits stale content, broken links, and structural drift
-- uses a local filesystem MCP to read only the vault directory you configure
+- uses the `obsidianVaultFilesystem` MCP to read and write only the vault directory you configure
 
 ## Privacy
 
@@ -25,9 +25,11 @@ This project is independent software and is not affiliated with, endorsed by, or
 - `.codex-plugin/plugin.json` for the Codex manifest
 - `skills/` for the core tasks
 - `hooks.json` for skill routing
-- `.mcp.json` for the vault filesystem MCP template
-- `scripts/install-local.sh` for local plugin and MCP setup
+- `.mcp.json` for the vault filesystem MCP wrapper
+- `scripts/install-local.sh` for local plugin and vault-path setup
+- `scripts/start-vault-mcp.sh` for MCP startup from `.vault-path`
 - `.agents/plugins/marketplace.json` for GitHub marketplace distribution
+- `marketplace.local.example.json` for `~/.agents/plugins/marketplace.json`
 - `docs/legal/` for the privacy policy
 - `INSTALL.md` for setup instructions
 
@@ -37,14 +39,14 @@ GitHub marketplace:
 
 ```bash
 codex plugin marketplace add LeonStadler/obsidian-vault-assistant
-codex mcp add obsidianVaultFilesystem -- npx --cache /tmp/codex-npm-cache -y @modelcontextprotocol/server-filesystem "/absolute/path/to/your/Obsidian Vault"
+scripts/install-local.sh "/absolute/path/to/your/Obsidian Vault"
 ```
 
 Local install:
 
 ```bash
-git clone https://github.com/LeonStadler/obsidian-vault-assistant.git
-cd obsidian-vault-assistant
+git clone https://github.com/LeonStadler/obsidian-vault-assistant.git ~/.codex/plugins/obsidian-vault-assistant
+cd ~/.codex/plugins/obsidian-vault-assistant
 scripts/install-local.sh "/absolute/path/to/your/Obsidian Vault"
 ```
 

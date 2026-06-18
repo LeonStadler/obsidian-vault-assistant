@@ -7,9 +7,17 @@ description: Enrich existing Obsidian notes with durable context, internal links
 
 Use this skill when the user wants existing notes to become more useful, more complete, or more connected.
 
+## MCP
+
+Use the `obsidianVaultFilesystem` MCP server for all vault reads and writes.
+
+- read target notes and nearby canonical notes through MCP
+- write only the smallest meaningful change back to the vault
+- if MCP is unavailable, tell the user to run `scripts/install-local.sh "/absolute/path/to/Obsidian Vault"` and restart Codex
+
 ## Workflow
 
-1. Read the target note and nearby canonical notes.
+1. Read the target note and nearby canonical notes via `obsidianVaultFilesystem`.
 2. Add durable knowledge, not temporary chatter.
 3. Insert internal links to hubs, references, and related projects.
 4. Keep edits small and focused.
@@ -33,4 +41,3 @@ Use this skill when the user wants existing notes to become more useful, more co
 - duplicating temporary diary material
 - adding unrelated side topics
 - moving content without a good reason
-

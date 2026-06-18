@@ -1,7 +1,7 @@
 interface:
   display_name: "Vault Structure"
   short_description: "Repair hubs and note structure"
-  default_prompt: "Use $vault-structure to improve Obsidian hubs, folder notes, navigation links, and canonical note placement."
+  default_prompt: "Use $vault-structure with obsidianVaultFilesystem to improve Obsidian hubs, folder notes, navigation links, and canonical note placement."
 
 policy:
   allow_implicit_invocation: true

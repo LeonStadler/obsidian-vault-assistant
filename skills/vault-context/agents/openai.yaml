@@ -1,7 +1,7 @@
 interface:
   display_name: "Vault Context"
-  short_description: "Summarize vault-backed context"
-  default_prompt: "Use $vault-context to find relevant Obsidian notes, summarize the current facts, and cite the note paths."
+  short_description: "Search vault context and cite evidence"
+  default_prompt: "Use $vault-context with obsidianVaultFilesystem to find relevant Obsidian notes, answer from vault evidence, or build a compact context pack."
 
 policy:
   allow_implicit_invocation: true

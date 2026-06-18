@@ -10,6 +10,7 @@ vault_path="$1"
 plugin_dir="${CODEX_HOME:-$HOME/.codex}/plugins/obsidian-vault-assistant"
 marketplace_dir="$HOME/.agents/plugins"
 marketplace_file="$marketplace_dir/marketplace.json"
+repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
 
 if [ ! -d "$vault_path" ]; then
   printf 'Vault path does not exist or is not a directory: %s\n' "$vault_path" >&2
@@ -28,13 +29,17 @@ fi
 
 mkdir -p "$plugin_dir" "$marketplace_dir" /tmp/codex-npm-cache
 
-if [ "$(cd "$(dirname "$0")/.." && pwd)" != "$plugin_dir" ]; then
+if [ "$repo_dir" != "$plugin_dir" ]; then
   rsync -a --delete \
     --exclude '.git' \
     --exclude '.gitignore' \
-    "$(cd "$(dirname "$0")/.." && pwd)/" \
+    --exclude '.vault-path' \
+    "$repo_dir/" \
     "$plugin_dir/"
 fi
+
+printf '%s\n' "$vault_path" > "$plugin_dir/.vault-path"
+chmod +x "$plugin_dir/scripts/start-vault-mcp.sh"
 
 MARKETPLACE_FILE="$marketplace_file" python3 - <<'PY'
 import json
@@ -73,10 +78,11 @@ path.write_text(json.dumps(data, indent=2) + "\n")
 PY
 
 codex mcp remove obsidianVaultFilesystem >/dev/null 2>&1 || true
-codex mcp add obsidianVaultFilesystem -- npx --cache /tmp/codex-npm-cache -y @modelcontextprotocol/server-filesystem "$vault_path"
+codex mcp add obsidianVaultFilesystem -- bash "$plugin_dir/scripts/start-vault-mcp.sh"
 
 printf 'Installed Obsidian Vault Assistant.\n'
 printf 'Plugin: %s\n' "$plugin_dir"
+printf 'Vault path: %s\n' "$vault_path"
 printf 'Marketplace: %s\n' "$marketplace_file"
-printf 'MCP: obsidianVaultFilesystem -> %s\n' "$vault_path"
+printf 'MCP: obsidianVaultFilesystem via scripts/start-vault-mcp.sh\n'
 printf 'Restart Codex, then enable the plugin from Local Plugins.\n'

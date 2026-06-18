@@ -1,7 +1,7 @@
 interface:
   display_name: "Vault Audit"
   short_description: "Find stale notes and broken links"
-  default_prompt: "Use $vault-audit to check my Obsidian vault for stale content, broken links, duplicate notes, and markdown drift."
+  default_prompt: "Use $vault-audit with obsidianVaultFilesystem to check my Obsidian vault for stale content, broken links, duplicate notes, and markdown drift."
 
 policy:
   allow_implicit_invocation: true

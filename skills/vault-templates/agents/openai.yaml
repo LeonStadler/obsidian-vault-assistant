@@ -1,7 +1,7 @@
 interface:
   display_name: "Vault Templates"
   short_description: "Create reusable note templates"
-  default_prompt: "Use $vault-templates to create or refine reusable Obsidian templates for hubs, projects, references, SOPs, or daily notes."
+  default_prompt: "Use $vault-templates with obsidianVaultFilesystem to create or refine reusable Obsidian templates for hubs, projects, references, SOPs, or daily notes."
 
 policy:
   allow_implicit_invocation: true

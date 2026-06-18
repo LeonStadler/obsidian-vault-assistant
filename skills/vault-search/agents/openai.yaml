@@ -1,7 +1,0 @@
-interface:
-  display_name: "Vault Search"
-  short_description: "Find notes and build context packs"
-  default_prompt: "Use $vault-search to find the most relevant Obsidian notes and build a compact context pack."
-
-policy:
-  allow_implicit_invocation: true

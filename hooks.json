@@ -1,14 +1,9 @@
 {
   "routes": [
     {
-      "name": "vault-search",
-      "skill": "./skills/vault-search/SKILL.md",
-      "intent": "Find relevant notes and build a compact context pack"
-    },
-    {
       "name": "vault-context",
       "skill": "./skills/vault-context/SKILL.md",
-      "intent": "Context search and concise evidence gathering"
+      "intent": "Search vault context, answer questions, and build evidence packs"
     },
     {
       "name": "vault-enrichment",
