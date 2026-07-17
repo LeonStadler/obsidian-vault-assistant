@@ -1,6 +1,6 @@
 {
   "name": "obsidian-vault-assistant",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "Codex plugin for Obsidian vaults: search context, enrich notes, improve structure, and audit stale content.",
   "author": {
     "name": "Leon Stadler",
@@ -18,6 +18,7 @@
     "codex"
   ],
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Obsidian Vault Assistant",
     "shortDescription": "Enrich vault knowledge and maintain structure",

@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.4.0 — 2026-07-09
+
+### Features
+
+- 2026-07-09: `.codex-plugin/plugin.json` now bundles `obsidianVaultFilesystem` via `mcpServers: "./.mcp.json"` so Codex can load the plugin MCP together with the skills
+- 2026-07-09: new `.mcp.json` declares the bundled plugin MCP startup command for `scripts/start-vault-mcp.sh`
+
+### Fixes
+
+- 2026-07-09: `scripts/install-local.sh` now writes `.vault-path` and installs the local MCP runtime without registering a separate global `codex mcp` entry
+- 2026-07-09: `scripts/start-vault-mcp.sh` now also supports `OBSIDIAN_VAULT_PATH` as a vault-path source for plugin-driven MCP startup
+- 2026-07-09: `README.md` and `INSTALL.md` now document the integrated plugin-plus-MCP installation flow for GitHub marketplace and local installs
+
+### Docs
+
+- 2026-07-09: `README.md` explains that the plugin install brings the skills and bundled MCP definition together, while local setup only configures the user-specific vault path
+
+### Chores
+
+- 2026-07-09: version bumped to `0.4.0` to reflect the integrated bundled-MCP installation flow
 ## 0.3.2 — 2026-06-18
 
 ### Features

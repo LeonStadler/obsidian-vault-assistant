@@ -17,11 +17,6 @@ if [ ! -d "$vault_path" ]; then
   exit 66
 fi
 
-if ! command -v codex >/dev/null 2>&1; then
-  printf 'Codex CLI was not found in PATH.\n' >&2
-  exit 69
-fi
-
 if ! command -v npm >/dev/null 2>&1; then
   printf 'npm was not found in PATH. Install Node.js first.\n' >&2
   exit 69
@@ -40,6 +35,9 @@ if [ "$repo_dir" != "$plugin_dir" ]; then
 fi
 
 chmod +x "$plugin_dir/scripts/start-vault-mcp.sh"
+
+vault_path_file="$plugin_dir/.vault-path"
+printf '%s\n' "$vault_path" > "$vault_path_file"
 
 mcp_server_dir="$plugin_dir/.mcp-server"
 mkdir -p "$mcp_server_dir"
@@ -81,12 +79,10 @@ data["plugins"].append(entry)
 path.write_text(json.dumps(data, indent=2) + "\n")
 PY
 
-codex mcp remove obsidianVaultFilesystem >/dev/null 2>&1 || true
-codex mcp add obsidianVaultFilesystem -- bash "$plugin_dir/scripts/start-vault-mcp.sh" "$vault_path"
-
 printf 'Installed Obsidian Vault Assistant.\n'
 printf 'Plugin: %s\n' "$plugin_dir"
 printf 'Vault path: %s\n' "$vault_path"
+printf 'Vault path file: %s\n' "$vault_path_file"
 printf 'Marketplace: %s\n' "$marketplace_file"
-printf 'MCP: obsidianVaultFilesystem -> %s\n' "$vault_path"
-printf 'Restart Codex, then enable the plugin from Local Plugins.\n'
+printf 'MCP: bundled via .mcp.json and start-vault-mcp.sh\n'
+printf 'Restart Codex, then install or re-enable the plugin so Codex reloads the bundled MCP.\n'

@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Codex CLI and Codex App, or another MCP-capable client such as Cursor
+- Codex App or another MCP-capable client such as Cursor
 - Node.js with `npm`
 - an existing Obsidian vault folder
 
@@ -11,25 +11,26 @@
 Add the GitHub marketplace to Codex:
 
 ```bash
-codex plugin marketplace add OWNER/obsidian-vault-assistant
+codex plugin marketplace add LeonStadler/obsidian-vault-assistant
 ```
 
-Replace `OWNER` with the GitHub user or org that hosts the repository.
+Install `obsidian-vault-assistant` from that marketplace in the Codex app or with `codex plugin add` if you already know the marketplace name.
 
-Configure the vault path for the plugin MCP:
+Then configure the local vault path for the bundled plugin MCP:
 
 ```bash
+cd "$HOME/.codex/plugins/obsidian-vault-assistant"
 scripts/install-local.sh "$HOME/Documents/Obsidian Vault"
 ```
 
-Restart Codex after installation, then enable `obsidian-vault-assistant`.
+Restart Codex after setup, then enable or reinstall `obsidian-vault-assistant` so Codex reloads the bundled MCP.
 
 ## Local install from a clone
 
 Clone the plugin and run the local installer with your vault path:
 
 ```bash
-git clone https://github.com/OWNER/obsidian-vault-assistant.git "$HOME/.codex/plugins/obsidian-vault-assistant"
+git clone https://github.com/LeonStadler/obsidian-vault-assistant.git "$HOME/.codex/plugins/obsidian-vault-assistant"
 cd "$HOME/.codex/plugins/obsidian-vault-assistant"
 scripts/install-local.sh "$HOME/Documents/Obsidian Vault"
 ```
@@ -37,11 +38,11 @@ scripts/install-local.sh "$HOME/Documents/Obsidian Vault"
 The installer:
 
 - copies the plugin to `$HOME/.codex/plugins/obsidian-vault-assistant` when needed
+- writes the chosen vault path into `.vault-path`
 - installs the filesystem MCP server into `.mcp-server/`
-- registers `obsidianVaultFilesystem` with the vault path as an MCP argument
 - registers the plugin in `$HOME/.agents/plugins/marketplace.json`
 
-Restart Codex after installation, then enable `obsidian-vault-assistant` under `Local Plugins`.
+Restart Codex after installation, then enable `obsidian-vault-assistant` under `Local Plugins`. Codex reads the bundled MCP definition from `.mcp.json`.
 
 ## Manual install
 
@@ -53,12 +54,11 @@ npm install --prefix "$HOME/.codex/plugins/obsidian-vault-assistant/.mcp-server"
 chmod +x "$HOME/.codex/plugins/obsidian-vault-assistant/scripts/start-vault-mcp.sh"
 ```
 
-3. Register the MCP server with your vault path:
+3. Write the vault path for the bundled plugin MCP:
 
 ```bash
-codex mcp add obsidianVaultFilesystem -- \
-  bash "$HOME/.codex/plugins/obsidian-vault-assistant/scripts/start-vault-mcp.sh" \
-  "$HOME/Documents/Obsidian Vault"
+printf '%s\n' "$HOME/Documents/Obsidian Vault" > \
+  "$HOME/.codex/plugins/obsidian-vault-assistant/.vault-path"
 ```
 
 4. Add this plugin entry to `$HOME/.agents/plugins/marketplace.json`:
@@ -122,10 +122,12 @@ The manual install section above shows the local-clone marketplace entry inline.
 
 ## MCP behavior
 
-The vault path is configured when the MCP server is registered.
+The plugin bundles the MCP definition in `.mcp.json`, and the vault path is configured locally via `.vault-path` or `OBSIDIAN_VAULT_PATH`.
 
-- `scripts/install-local.sh` runs `codex mcp add ... start-vault-mcp.sh "<vault path>"`
-- `scripts/start-vault-mcp.sh` receives the vault path as its first argument
+- `.codex-plugin/plugin.json` points `mcpServers` at `.mcp.json`
+- `.mcp.json` starts `./scripts/start-vault-mcp.sh`
+- `scripts/install-local.sh` writes the selected vault path into `.vault-path`
+- `scripts/start-vault-mcp.sh` reads the vault path from its first argument, `OBSIDIAN_VAULT_PATH`, or `.vault-path`
 - the filesystem MCP server is installed locally under `.mcp-server/`
 - startup uses `node` directly instead of `npx`
 
@@ -138,6 +140,7 @@ MCP path rules:
 If MCP calls fail, rerun:
 
 ```bash
+cd "$HOME/.codex/plugins/obsidian-vault-assistant"
 scripts/install-local.sh "$HOME/Documents/Obsidian Vault"
 ```
 
@@ -147,6 +150,7 @@ Then restart the client.
 
 These files are created on your machine and must not be committed:
 
+- `.vault-path`
 - `.mcp-server/`
 
 ## What stays local
