@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.0 — 2026-07-26
+
+### Features
+
+- 2026-07-26: new `skills/project-documentation/SKILL.md` classifies repositories from repository and vault evidence, routes them through a user-owned vault configuration, and maintains separate project notes for requirements, technology, decisions, planning, and design instead of a shared changelog
+- 2026-07-26: new `skills/project-documentation/assets/project-documentation-routing.md` provides a portable routing-configuration starting point, while `skills/project-documentation/agents/openai.yaml` exposes the workflow in Codex
+
+### Docs
+
+- 2026-07-26: `README.md` and `INSTALL.md` document project documentation routing, the vault-root configuration note, classification safeguards, and the English fallback language
+- 2026-07-26: `skills/vault-context/SKILL.md` and `skills/vault-enrichment/SKILL.md` direct repository-wide project documentation work to the dedicated orchestration skill
+
+### Chores
+
+- 2026-07-26: `.codex-plugin/plugin.json` and `README.md` bump the plugin to `0.5.0`
+
 ## 0.4.0 — 2026-07-09
 
 ### Features

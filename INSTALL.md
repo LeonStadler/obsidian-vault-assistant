@@ -131,6 +131,12 @@ The plugin bundles the MCP definition in `.mcp.json`, and the vault path is conf
 - the filesystem MCP server is installed locally under `.mcp-server/`
 - startup uses `node` directly instead of `npx`
 
+## Project documentation routing
+
+The bundled `project-documentation` skill expects a user-owned routing note at `00_Project Documentation Routing.md` in the vault root. It maps local project kinds and evidence to canonical vault destinations, so the plugin does not assume a universal folder layout.
+
+Start from `skills/project-documentation/assets/project-documentation-routing.md`, then adapt the area names, paths, and repository signals to the vault. The skill reads repository metadata and existing vault notes before proposing an assignment, and asks before creating a project folder or note.
+
 MCP path rules:
 
 - use absolute vault paths such as `$HOME/Documents/Obsidian Vault/...`

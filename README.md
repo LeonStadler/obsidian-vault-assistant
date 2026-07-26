@@ -2,7 +2,7 @@
 
 Codex plugin for working with Obsidian vaults locally.
 
-Current version: `0.4.0`
+Current version: `0.5.0`
 
 ## What it does
 
@@ -10,6 +10,7 @@ Current version: `0.4.0`
 - enriches notes with structure, links, and durable knowledge
 - creates reusable templates for recurring note types
 - audits stale content, broken links, and structural drift
+- classifies repositories and maintains structured project documentation across requirements, technology, planning, decisions, and design
 - uses the `obsidianVaultFilesystem` MCP to read and write only the vault directory you configure
 
 ## Privacy
@@ -31,6 +32,14 @@ This project is independent software and is not affiliated with, endorsed by, or
 - `.agents/plugins/marketplace.json` for GitHub marketplace distribution
 - `docs/legal/` for the privacy policy
 - `INSTALL.md` for setup instructions
+
+## Project documentation
+
+Use the **Project Documentation** skill when a repository needs a durable project record rather than a shared changelog. It inspects the repository and existing vault knowledge, classifies the project from configurable evidence, and routes the result to the matching canonical vault area.
+
+The skill reads `00_Project Documentation Routing.md` from the vault root. That user-owned note defines local organisations, project kinds, recognition signals, and destination paths. A starter template is bundled at `skills/project-documentation/assets/project-documentation-routing.md`; copy and adapt it only after reviewing your vault's structure.
+
+The skill keeps a project hub and adds separate notes only where supported by evidence: requirements and vision, technical overview, decisions, status and plan, and design and experience. It preserves existing canonical notes, asks before creating new project structure, and defaults to English only when a project has no established language.
 
 ## Installation
 

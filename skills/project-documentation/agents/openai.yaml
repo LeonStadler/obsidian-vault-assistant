@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Documentation"
+  short_description: "Route and document projects"
+  default_prompt: "Use $project-documentation to document this repository in my Obsidian vault."
