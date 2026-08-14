@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.5.0 — 2026-07-26
+
+### Features
+
+- 2026-07-26: new `skills/project-documentation/SKILL.md` classifies repositories from repository and vault evidence, routes them through a user-owned vault configuration, and maintains separate project notes for requirements, technology, decisions, planning, and design instead of a shared changelog
+- 2026-07-26: new `skills/project-documentation/assets/project-documentation-routing.md` provides a portable routing-configuration starting point, while `skills/project-documentation/agents/openai.yaml` exposes the workflow in Codex
+
+### Docs
+
+- 2026-07-26: `README.md` and `INSTALL.md` document project documentation routing, the vault-root configuration note, classification safeguards, and the English fallback language
+- 2026-07-26: `skills/vault-context/SKILL.md` and `skills/vault-enrichment/SKILL.md` direct repository-wide project documentation work to the dedicated orchestration skill
+
+### Chores
+
+- 2026-07-26: `.codex-plugin/plugin.json` and `README.md` bump the plugin to `0.5.0`
+
+## 0.4.0 — 2026-07-09
+
+### Features
+
+- 2026-07-09: `.codex-plugin/plugin.json` now bundles `obsidianVaultFilesystem` via `mcpServers: "./.mcp.json"` so Codex can load the plugin MCP together with the skills
+- 2026-07-09: new `.mcp.json` declares the bundled plugin MCP startup command for `scripts/start-vault-mcp.sh`
+
+### Fixes
+
+- 2026-07-09: `scripts/install-local.sh` now writes `.vault-path` and installs the local MCP runtime without registering a separate global `codex mcp` entry
+- 2026-07-09: `scripts/start-vault-mcp.sh` now also supports `OBSIDIAN_VAULT_PATH` as a vault-path source for plugin-driven MCP startup
+- 2026-07-09: `README.md` and `INSTALL.md` now document the integrated plugin-plus-MCP installation flow for GitHub marketplace and local installs
+
+### Docs
+
+- 2026-07-09: `README.md` explains that the plugin install brings the skills and bundled MCP definition together, while local setup only configures the user-specific vault path
+
+### Chores
+
+- 2026-07-09: version bumped to `0.4.0` to reflect the integrated bundled-MCP installation flow
 ## 0.3.2 — 2026-06-18
 
 ### Features

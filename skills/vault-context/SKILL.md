@@ -24,6 +24,8 @@ Use the `obsidianVaultFilesystem` MCP server for all vault file access.
 4. For discovery requests: build a ranked context pack with the best sources and gaps.
 5. Flag uncertainty instead of guessing.
 
+For a repository-wide project context pack or a request to determine where project documentation belongs, use `project-documentation` instead. It adds repository classification and canonical project routing.
+
 ## Output
 
 For questions:
