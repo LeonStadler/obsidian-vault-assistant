@@ -1,26 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ "$#" -ne 1 ]; then
-  printf 'Usage: %s "$HOME/Documents/Obsidian Vault"\n' "$0" >&2
-  exit 64
+if [ "$#" -gt 0 ] && [ "$1" = "--help" ]; then
+  printf 'Usage: %s [VAULT_PATH]\n' "$0"
+  printf '       %s --select [--retrieval-root PATH]... [--exclude PATH]...\n' "$0"
+  exit 0
 fi
 
-vault_path="$1"
 plugin_dir="${CODEX_HOME:-$HOME/.codex}/plugins/obsidian-vault-assistant"
 marketplace_dir="$HOME/.agents/plugins"
 marketplace_file="$marketplace_dir/marketplace.json"
 repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
-
-if [ ! -d "$vault_path" ]; then
-  printf 'Vault path does not exist or is not a directory: %s\n' "$vault_path" >&2
-  exit 66
-fi
-
-if ! command -v codex >/dev/null 2>&1; then
-  printf 'Codex CLI was not found in PATH.\n' >&2
-  exit 69
-fi
 
 if ! command -v npm >/dev/null 2>&1; then
   printf 'npm was not found in PATH. Install Node.js first.\n' >&2
@@ -34,12 +24,22 @@ if [ "$repo_dir" != "$plugin_dir" ]; then
     --exclude '.git' \
     --exclude '.gitignore' \
     --exclude '.vault-path' \
+    --exclude '.vault-config.json' \
     --exclude '.mcp-server' \
     "$repo_dir/" \
     "$plugin_dir/"
 fi
 
 chmod +x "$plugin_dir/scripts/start-vault-mcp.sh"
+chmod +x "$plugin_dir/scripts/configure-vault.sh"
+
+if [ "$#" -eq 0 ]; then
+  "$plugin_dir/scripts/configure-vault.sh" --select
+else
+  "$plugin_dir/scripts/configure-vault.sh" "$@"
+fi
+
+vault_path="$(tr -d '\n' < "$plugin_dir/.vault-path")"
 
 mcp_server_dir="$plugin_dir/.mcp-server"
 mkdir -p "$mcp_server_dir"
@@ -81,12 +81,20 @@ data["plugins"].append(entry)
 path.write_text(json.dumps(data, indent=2) + "\n")
 PY
 
-codex mcp remove obsidianVaultFilesystem >/dev/null 2>&1 || true
-codex mcp add obsidianVaultFilesystem -- bash "$plugin_dir/scripts/start-vault-mcp.sh" "$vault_path"
+legacy_mcp_detected=0
+if command -v codex >/dev/null 2>&1; then
+  legacy_mcp_list="$(codex mcp list 2>/dev/null || true)"
+  if printf '%s\n' "$legacy_mcp_list" | grep -q 'obsidianVaultFilesystem'; then
+    legacy_mcp_detected=1
+  fi
+fi
 
 printf 'Installed Obsidian Vault Assistant.\n'
 printf 'Plugin: %s\n' "$plugin_dir"
 printf 'Vault path: %s\n' "$vault_path"
 printf 'Marketplace: %s\n' "$marketplace_file"
-printf 'MCP: obsidianVaultFilesystem -> %s\n' "$vault_path"
-printf 'Restart Codex, then enable the plugin from Local Plugins.\n'
+printf 'MCP: bundled via .mcp.json and configured locally\n'
+if [ "$legacy_mcp_detected" -eq 1 ]; then
+  printf 'Notice: an existing global obsidianVaultFilesystem entry was detected; it was not changed. Remove it manually after verifying the bundled MCP.\n'
+fi
+printf 'Restart Codex, then enable the plugin from Local Plugins and start a new task.\n'

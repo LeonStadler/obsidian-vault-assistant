@@ -2,4 +2,6 @@
 *.tmp
 *.temp
 .vault-path
+.vault-config.json
 .mcp-server/
+__pycache__/

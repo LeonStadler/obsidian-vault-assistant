@@ -1,6 +1,6 @@
 {
   "name": "obsidian-vault-assistant",
-  "version": "0.3.2",
+  "version": "0.5.2+codex.20260910000000",
   "description": "Codex plugin for Obsidian vaults: search context, enrich notes, improve structure, and audit stale content.",
   "author": {
     "name": "Leon Stadler",
@@ -18,17 +18,24 @@
     "codex"
   ],
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Obsidian Vault Assistant",
     "shortDescription": "Enrich vault knowledge and maintain structure",
     "longDescription": "A modular Codex plugin for Obsidian vault work: search context, enrich evergreen notes, create templates, repair structure, and audit stale or inconsistent markdown.",
     "developerName": "Leon Stadler",
     "category": "Productivity",
-    "capabilities": ["Interactive", "Read", "Search", "Write"],
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Search",
+      "Write"
+    ],
     "websiteURL": "https://github.com/LeonStadler/obsidian-vault-assistant",
     "privacyPolicyURL": "https://github.com/LeonStadler/obsidian-vault-assistant/blob/main/docs/legal/privacy-policy.md",
     "defaultPrompt": [
-      "Search the vault for relevant context and summarize it.",
+      "Use only the obsidianVaultFilesystem MCP from Obsidian Vault Assistant and call configure_vault to open its in-chat setup UI. Do not use Md.obsidian Integration, Computer Use, or open Obsidian.",
+      "Build a focused context pack from the relevant vault notes.",
       "Find stale notes, broken links, and structural drift.",
       "Create or improve templates for recurring note types."
     ],

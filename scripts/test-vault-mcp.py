@@ -91,18 +91,25 @@ def is_success(name: str, detail: str) -> bool:
 
 def main() -> int:
     plugin_dir = Path(os.environ.get("PLUGIN_DIR", Path.home() / ".codex/plugins/obsidian-vault-assistant"))
+    stable_plugin_dir = Path(os.environ.get("STABLE_PLUGIN_DIR", plugin_dir))
     start_script = plugin_dir / "scripts/start-vault-mcp.sh"
-    vault_path = os.environ.get("VAULT_PATH", "").strip()
-    if not vault_path and (plugin_dir / ".vault-path").exists():
-        vault_path = (plugin_dir / ".vault-path").read_text().strip()
-    if not vault_path:
-        print("Set VAULT_PATH or create .vault-path before running the smoke test.", file=sys.stderr)
+    configured_vault_path = ""
+    config_dir = stable_plugin_dir if (stable_plugin_dir / ".vault-path").exists() else plugin_dir
+    if (config_dir / ".vault-path").exists():
+        configured_vault_path = (config_dir / ".vault-path").read_text().strip()
+    requested_vault_path = os.environ.get("VAULT_PATH", "").strip()
+    vault_path = requested_vault_path or configured_vault_path
+    if not configured_vault_path or not (config_dir / ".vault-config.json").exists():
+        print("Create .vault-path and .vault-config.json before running the smoke test.", file=sys.stderr)
+        return 1
+    if requested_vault_path and Path(requested_vault_path).resolve() != Path(configured_vault_path).resolve():
+        print("VAULT_PATH does not match the configured .vault-path.", file=sys.stderr)
         return 1
     if not start_script.exists():
         print(f"Missing start script: {start_script}", file=sys.stderr)
         return 1
 
-    client = McpClient(["bash", str(start_script), vault_path])
+    client = McpClient(["bash", str(start_script)])
 
     results: list[tuple[str, str]] = []
     test_dir_name = f".codex-mcp-test-{uuid.uuid4().hex[:8]}"
@@ -126,6 +133,21 @@ def main() -> int:
         tools = client.request("tools/list")
         tool_names = sorted(tool.get("name", "") for tool in tools.get("tools", []))
         results.append(("tools/list", ", ".join(tool_names)))
+
+        setup_tool = next((tool for tool in tools.get("tools", []) if tool.get("name") == "configure_vault"), None)
+        setup_meta = setup_tool.get("_meta", {}) if setup_tool else {}
+        setup_uri = setup_meta.get("ui", {}).get("resourceUri", "")
+        results.append(("configure_vault_ui", setup_uri if setup_uri else "missing UI resource metadata"))
+
+        resources = client.request("resources/list").get("resources", [])
+        resource_uri = resources[0].get("uri", "") if resources else ""
+        resource = client.request("resources/read", {"uri": resource_uri}) if resource_uri else {}
+        resource_content = resource.get("contents", [{}])[0]
+        resource_ok = resource_content.get("mimeType") == "text/html;profile=mcp-app" and "Vault auswählen" in resource_content.get("text", "")
+        results.append(("vault_setup_resource", "ok" if resource_ok else "missing MCP App resource"))
+
+        config_state = client.request("tools/call", {"name": "configure_vault", "arguments": {}}).get("structuredContent", {})
+        results.append(("configure_vault", "configured" if config_state.get("configured") else "not configured"))
 
         allowed = extract_text(client.request("tools/call", {"name": "list_allowed_directories", "arguments": {}}))
         vault_root = allowed.splitlines()[-1].strip()

@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Codex CLI and Codex App, or another MCP-capable client such as Cursor
+- Codex App, or another MCP-capable client such as Cursor
 - Node.js with `npm`
 - an existing Obsidian vault folder
 
@@ -11,37 +11,51 @@
 Add the GitHub marketplace to Codex:
 
 ```bash
-codex plugin marketplace add OWNER/obsidian-vault-assistant
+codex plugin marketplace add LeonStadler/obsidian-vault-assistant
 ```
 
-Replace `OWNER` with the GitHub user or org that hosts the repository.
+Install `obsidian-vault-assistant` from the marketplace. The marketplace provides the five skills, the bundled MCP definition, and the in-Codex Vault setup UI.
 
-Configure the vault path for the plugin MCP:
+After installation, start a new task and select the first starter prompt. It calls `configure_vault` on this plugin's `obsidianVaultFilesystem` MCP. The MCP App opens the native macOS folder picker. After selecting the Vault, set the allowed retrieval folders and excluded folders in the same UI and click `Konfiguration speichern`.
+
+The gear labelled `In MCP-Einstellungen einrichten` belongs to Codex's generic host settings and cannot be extended by a local plugin with a custom folder picker. Use the setup prompt in a chat for the plugin UI. The task must show `Obsidian Vault Assistant` and `obsidianVaultFilesystem`; do not continue if it instead invokes `Md.obsidian Integration` or Computer Use.
+
+The UI flow stores `.vault-path` and `.vault-config.json` locally and does not create a global memory database or vector index. The filesystem runtime is installed automatically on first MCP startup when `npm` is available.
+
+Terminal/automation fallback:
+
+```bash
+scripts/install-local.sh --select
+```
+
+Terminal/automation path:
 
 ```bash
 scripts/install-local.sh "$HOME/Documents/Obsidian Vault"
 ```
 
-Restart Codex after installation, then enable `obsidian-vault-assistant`.
+The local setup also asks for retrieval folders and exclusions when using `--select`. This fallback is not required for the normal Codex UI flow.
 
 ## Local install from a clone
 
 Clone the plugin and run the local installer with your vault path:
 
 ```bash
-git clone https://github.com/OWNER/obsidian-vault-assistant.git "$HOME/.codex/plugins/obsidian-vault-assistant"
+git clone https://github.com/LeonStadler/obsidian-vault-assistant.git "$HOME/.codex/plugins/obsidian-vault-assistant"
 cd "$HOME/.codex/plugins/obsidian-vault-assistant"
-scripts/install-local.sh "$HOME/Documents/Obsidian Vault"
+scripts/install-local.sh --select
 ```
 
 The installer:
 
 - copies the plugin to `$HOME/.codex/plugins/obsidian-vault-assistant` when needed
-- installs the filesystem MCP server into `.mcp-server/`
-- registers `obsidianVaultFilesystem` with the vault path as an MCP argument
+- installs the filesystem MCP server into `.mcp-server/` when using the fallback installer
+- writes the selected Vault path to `.vault-path`
+- writes retrieval roots and exclusions to `.vault-config.json`
+- configures the bundled `obsidianVaultFilesystem` MCP without a global `codex mcp add` entry
 - registers the plugin in `$HOME/.agents/plugins/marketplace.json`
 
-Restart Codex after installation, then enable `obsidian-vault-assistant` under `Local Plugins`.
+Restart Codex after installation, then enable `obsidian-vault-assistant` under `Local Plugins` and start a new task.
 
 ## Manual install
 
@@ -53,11 +67,10 @@ npm install --prefix "$HOME/.codex/plugins/obsidian-vault-assistant/.mcp-server"
 chmod +x "$HOME/.codex/plugins/obsidian-vault-assistant/scripts/start-vault-mcp.sh"
 ```
 
-3. Register the MCP server with your vault path:
+3. Configure the local Vault and retrieval scope:
 
 ```bash
-codex mcp add obsidianVaultFilesystem -- \
-  bash "$HOME/.codex/plugins/obsidian-vault-assistant/scripts/start-vault-mcp.sh" \
+"$HOME/.codex/plugins/obsidian-vault-assistant/scripts/configure-vault.sh" \
   "$HOME/Documents/Obsidian Vault"
 ```
 
@@ -87,11 +100,11 @@ codex mcp add obsidianVaultFilesystem -- \
 ```
 
 5. Restart Codex.
-6. Enable `obsidian-vault-assistant` in the Marketplace.
+6. Enable `obsidian-vault-assistant` in the Marketplace and start a new task.
 
 ## Cursor and other MCP clients
 
-Use `mcp.example.json` as a template. Replace `YOUR_USER` with your account name or build the paths from `echo $HOME`.
+Use `mcp.example.json` as a template. Replace `YOUR_USER` with your account name or build the paths from `echo $HOME`. For Cursor, run the local setup first so `.vault-path` and `.vault-config.json` exist; Cursor does not use the Codex MCP App setup UI.
 
 ```json
 {
@@ -99,8 +112,7 @@ Use `mcp.example.json` as a template. Replace `YOUR_USER` with your account name
     "obsidianVaultFilesystem": {
       "command": "bash",
       "args": [
-        "/Users/YOUR_USER/.codex/plugins/obsidian-vault-assistant/scripts/start-vault-mcp.sh",
-        "/Users/YOUR_USER/Documents/Obsidian Vault"
+        "/Users/YOUR_USER/.codex/plugins/obsidian-vault-assistant/scripts/start-vault-mcp.sh"
       ]
     }
   }
@@ -122,12 +134,20 @@ The manual install section above shows the local-clone marketplace entry inline.
 
 ## MCP behavior
 
-The vault path is configured when the MCP server is registered.
+The Vault path is stored locally and the bundled MCP reads it when it starts. In Codex, `configure_vault` renders the setup UI and `choose_vault` opens the native macOS folder picker. `save_vault_scope` validates and persists the selected retrieval scope before the filesystem tools become available.
 
-- `scripts/install-local.sh` runs `codex mcp add ... start-vault-mcp.sh "<vault path>"`
-- `scripts/start-vault-mcp.sh` receives the vault path as its first argument
+- `scripts/install-local.sh` installs the local runtime and writes `.vault-path` and `.vault-config.json`
+- `scripts/configure-vault.sh --select` opens the macOS Vault and retrieval-scope setup again
+- `scripts/start-vault-mcp.sh` bootstraps the local runtime and starts the configuration-aware MCP proxy; cached plugin copies use the stable local configuration
+- `scripts/vault-mcp-server.mjs` exposes the setup tools, MCP Apps resource, and validated proxy to the filesystem MCP
+- `ui/vault-setup.html` provides the in-Codex Vault and retrieval-scope form
 - the filesystem MCP server is installed locally under `.mcp-server/`
 - startup uses `node` directly instead of `npx`
+- `excludePaths` are enforced by the retrieval skills; the MCP directory sandbox is defined by `retrievalRoots`
+
+The MCP is a retrieval transport, not a global memory database. Search results are loaded only for the current task. The agent does not create an automatic Memory note or a vector index.
+
+The retrieval skills use targeted search terms, start with up to three sources, expand to five only for a concrete gap, reduce large notes to relevant sections, and keep the assembled context below roughly 24,000 characters. Luna is recommended for ordinary Vault retrieval and small edits; switch to a stronger model for broad synthesis or unresolved conflicts.
 
 MCP path rules:
 
@@ -135,10 +155,10 @@ MCP path rules:
 - relative paths resolve against the MCP process working directory, not the vault root
 - on macOS, full-vault `search_files` scans may return `EPERM`; search a subdirectory instead
 
-If MCP calls fail, rerun:
+If MCP calls fail, use the setup starter prompt again. For clients without MCP App UI, rerun:
 
 ```bash
-scripts/install-local.sh "$HOME/Documents/Obsidian Vault"
+scripts/configure-vault.sh --select
 ```
 
 Then restart the client.
@@ -148,9 +168,12 @@ Then restart the client.
 These files are created on your machine and must not be committed:
 
 - `.mcp-server/`
+- `.vault-path`
+- `.vault-config.json`
 
 ## What stays local
 
 - Vault content is read from your local machine.
-- The MCP server reads only the directory you register.
+- The MCP server reads only the configured retrieval roots.
+- Retrieval skills exclude the configured technical, media, and archive paths.
 - Nothing is sent outside your machine unless you connect other services yourself.

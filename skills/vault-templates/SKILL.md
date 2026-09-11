@@ -13,13 +13,14 @@ Use the `obsidianVaultFilesystem` MCP server for all vault reads and writes.
 
 - call `list_allowed_directories` first when the allowed vault root is unclear
 - use absolute vault paths such as `$HOME/Documents/Obsidian Vault/...`; relative paths resolve against the MCP process working directory, not the vault root
+- respect configured retrieval roots and exclusions while gathering context
 - write new or updated template files only inside the configured vault
-- if MCP is unavailable, rerun `scripts/install-local.sh "$HOME/Documents/Obsidian Vault"` and restart the client
+- if the Vault is not configured, call `configure_vault` on `obsidianVaultFilesystem` so the user can select it in the MCP App UI; do not use `Md.obsidian Integration`, Computer Use, or open Obsidian for setup; if MCP remains unavailable, stop and explain that the Vault was not checked
 
 ## Workflow
 
 1. Identify the note type and its purpose.
-2. Read similar notes and existing templates via `obsidianVaultFilesystem`.
+2. Use the `vault-context` relevance workflow to read only similar notes and existing templates from the relevant area.
 3. List the minimum sections the note must contain.
 4. Add optional sections only when they provide real value.
 5. Keep templates simple enough to reuse and aligned with vault conventions.

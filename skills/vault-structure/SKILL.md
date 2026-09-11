@@ -13,13 +13,14 @@ Use the `obsidianVaultFilesystem` MCP server for all vault reads and writes.
 
 - call `list_allowed_directories` first when the allowed vault root is unclear
 - use absolute vault paths such as `$HOME/Documents/Obsidian Vault/...`; relative paths resolve against the MCP process working directory, not the vault root
+- respect configured retrieval roots and exclusions while gathering context
 - apply structural edits only after checking affected paths
-- if MCP is unavailable, rerun `scripts/install-local.sh "$HOME/Documents/Obsidian Vault"` and restart the client
+- if the Vault is not configured, call `configure_vault` on `obsidianVaultFilesystem` so the user can select it in the MCP App UI; do not use `Md.obsidian Integration`, Computer Use, or open Obsidian for setup; if MCP remains unavailable, stop and explain that the Vault was not checked
 
 ## Workflow
 
 1. Identify the area that should become canonical.
-2. Check existing hubs, folder notes, and linked entry points via `obsidianVaultFilesystem`.
+2. Use the `vault-context` relevance workflow for that area. Inspect its hubs, folder notes, and linked entry points before looking elsewhere in the vault.
 3. Propose the smallest structural change that improves navigation.
 4. Update links consistently if a note moves or is renamed.
 5. Keep similar content together inside the same area.

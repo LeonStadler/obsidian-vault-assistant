@@ -13,14 +13,15 @@ Use the `obsidianVaultFilesystem` MCP server for all vault reads and writes.
 
 - call `list_allowed_directories` first when the allowed vault root is unclear
 - use absolute vault paths such as `$HOME/Documents/Obsidian Vault/...`; relative paths resolve against the MCP process working directory, not the vault root
+- respect configured retrieval roots and exclusions while gathering context
 - write only the smallest meaningful change back to the vault
-- if MCP is unavailable, rerun `scripts/install-local.sh "$HOME/Documents/Obsidian Vault"` and restart the client
+- if the Vault is not configured, call `configure_vault` on `obsidianVaultFilesystem` so the user can select it in the MCP App UI; do not use `Md.obsidian Integration`, Computer Use, or open Obsidian for setup; if MCP remains unavailable, stop and explain that the Vault was not checked
 
 ## Workflow
 
-1. Read the target note and nearby canonical notes via `obsidianVaultFilesystem`.
+1. Use the `vault-context` relevance workflow before editing: search with targeted terms and read only the target note plus the few canonical notes needed for the change.
 2. Add durable knowledge, not temporary chatter.
-3. Insert internal links to hubs, references, and related projects.
+3. Insert internal links to hubs, references, and related projects only when they are relevant to the target note.
 4. Keep edits small and focused.
 5. Preserve the note's current role unless a stronger canonical placement exists.
 

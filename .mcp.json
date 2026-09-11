@@ -3,7 +3,7 @@
     "obsidianVaultFilesystem": {
       "command": "bash",
       "args": [
-        "/Users/YOUR_USER/.codex/plugins/obsidian-vault-assistant/scripts/start-vault-mcp.sh"
+        "./scripts/start-vault-mcp.sh"
       ]
     }
   }

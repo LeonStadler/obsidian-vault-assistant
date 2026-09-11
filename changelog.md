@@ -1,5 +1,66 @@
 # Changelog
 
+## 0.5.2 — 2026-09-10
+
+### Fixes
+
+- `scripts/start-vault-mcp.sh`: require `npm` only when the local filesystem runtime is missing, so GUI sessions with a restricted `PATH` can still start an already-installed MCP.
+- `.codex-plugin/plugin.json`, `README.md`, and `scripts/vault-mcp-server.mjs`: bump the plugin and MCP proxy version to `0.5.2`.
+
+## 0.5.1 — 2026-09-03
+
+### Fixes
+
+- `.codex-plugin/plugin.json`: make the starter prompt explicitly target `obsidianVaultFilesystem` and exclude unrelated Obsidian integrations and Computer Use.
+- `scripts/vault-mcp-server.mjs`: clarify the setup tool metadata and initialization instructions so the host routes setup to this MCP App.
+- `skills/vault-context/SKILL.md`, `skills/vault-audit/SKILL.md`, `skills/vault-enrichment/SKILL.md`, `skills/vault-structure/SKILL.md`, and `skills/vault-templates/SKILL.md`: require the bundled MCP for setup and prohibit unrelated UI integrations.
+
+### Docs
+
+- `README.md` and `INSTALL.md`: explain that the plugin details gear is host-managed and that the custom Vault picker opens from `configure_vault` in a chat.
+
+## 0.5.0 — 2026-09-02
+
+### Features
+
+- `scripts/vault-mcp-server.mjs`: add a configuration-aware MCP proxy with `configure_vault`, `choose_vault`, and `save_vault_scope` tools; expose the filesystem tools only after a validated local Vault scope exists.
+- `ui/vault-setup.html`: add an MCP Apps setup UI with a native macOS Vault picker, retrieval-root fields, exclusion fields, and local-save feedback.
+- `scripts/start-vault-mcp.sh`: bootstrap the local MCP runtime automatically and start the UI-capable proxy without requiring pre-existing `.vault-path` files.
+- `.codex-plugin/plugin.json`: add an interface starter prompt for opening the Vault setup UI and bump the plugin to `0.5.0`.
+
+### Docs
+
+- `README.md`, `INSTALL.md`, and the five Vault skills: make the in-Codex MCP App setup the primary configuration path and retain terminal setup only for non-UI clients.
+
+### Chores
+
+- `scripts/test-vault-mcp.py`: verify MCP App metadata, the setup resource, and the configuration tool alongside the filesystem smoke test.
+
+## 0.4.0 — 2026-09-02
+
+### Features
+
+- `.codex-plugin/plugin.json` and `.mcp.json`: bundle the `obsidianVaultFilesystem` MCP definition with the plugin.
+- `scripts/configure-vault.sh`: add macOS folder selection and local configuration of one Vault, multiple retrieval roots, and excluded paths; preserve explicit CLI overrides during dialog setup.
+- `scripts/start-vault-mcp.sh`: require local Vault configuration, use the stable local configuration for cached plugin copies, and pass configured retrieval roots as the MCP filesystem sandbox.
+- `scripts/test-vault-mcp.py`: exercise the bundled no-argument MCP startup when local configuration exists.
+- `skills/vault-context/SKILL.md`: adds a bounded MCP retrieval workflow that derives targeted queries, ranks results, reads up to three sources by default, and expands to five only for concrete gaps.
+- `skills/vault-enrichment/SKILL.md`, `skills/vault-structure/SKILL.md`, and `skills/vault-templates/SKILL.md`: require focused Vault Context discovery before writing or restructuring notes.
+- `skills/vault-audit/SKILL.md`: scopes audits to the requested area unless the user explicitly requests a vault-wide audit.
+
+### Docs
+
+- `README.md` and `INSTALL.md`: document the bundled MCP, local Vault setup, retrieval scope, no-global-memory behavior, and Luna usage guidance.
+
+### Chores
+
+- `.gitignore`: ignores `.vault-config.json` alongside `.vault-path`.
+- `.codex-plugin/plugin.json`: bumps the plugin to version `0.4.0` and updates the context starter prompt.
+
+### Fixes
+
+- `scripts/install-local.sh`: stops registering a global MCP entry, installs the local MCP runtime, and detects existing global `obsidianVaultFilesystem` entries without changing them.
+
 ## 0.3.2 — 2026-06-18
 
 ### Features
