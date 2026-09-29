@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated:** 2026-04-26
+**Last updated:** 2026-09-30
 
 This privacy policy describes the `obsidian-vault-assistant` plugin and how it handles data when you use it.
 
@@ -32,7 +32,7 @@ Depending on how you use the plugin, it may process:
 
 ## 4. External services
 
-If you connect Codex, OpenAI services, MCP servers, GitHub, or any other external tool, the content you choose to send may be processed by those services under their own terms and privacy policies.
+When used in Codex, Vault content returned by MCP tools becomes part of the conversation and may be processed by the configured model provider under the host and provider privacy policies. Local filesystem access does not imply local model processing. The plugin does not independently upload Vault files or create a remote Vault database. Other connected services process the data you send under their own terms and privacy policies.
 
 ## 5. Your responsibility
 

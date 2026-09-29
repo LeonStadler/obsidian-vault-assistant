@@ -34,7 +34,7 @@
       <label for="excludes">Ausgeschlossene Ordner</label>
       <textarea id="excludes" placeholder="Ein relativer Ordner pro Zeile, zum Beispiel:&#10;.obsidian&#10;Archive"></textarea>
       <div class="actions">
-        <button id="choose" type="button">Vault auswählen</button>
+        <button id="choose" type="button" disabled>Vault auswählen</button>
         <button id="save" class="primary" type="button" disabled>Konfiguration speichern</button>
       </div>
       <div id="message" class="message" role="status"></div>
@@ -42,11 +42,25 @@
     <script>
       const pending = new Map();
       let nextId = 1;
+      let configured = false;
+      let ready = false;
+      let busy = false;
+
+      function updateButtons() {
+        document.getElementById("choose").disabled = !ready || busy;
+        document.getElementById("save").disabled = !ready || busy || !configured;
+      }
 
       function request(method, params) {
         const id = nextId++;
-        window.parent.postMessage({ jsonrpc: "2.0", id, method, params }, "*");
-        return new Promise((resolve, reject) => pending.set(id, { resolve, reject }));
+        return new Promise((resolve, reject) => {
+          const timer = setTimeout(() => {
+            pending.delete(id);
+            reject(new Error(`Keine Antwort vom Host für ${method}. Öffne die Setup-Ansicht erneut.`));
+          }, 120000);
+          pending.set(id, { resolve, reject, timer });
+          window.parent.postMessage({ jsonrpc: "2.0", id, method, params }, "*");
+        });
       }
 
       function valuesFromTextarea(id) {
@@ -55,16 +69,16 @@
 
       function updateState(nextState) {
         if (!nextState || typeof nextState !== "object") return;
-        const configured = nextState.configured === true;
+        configured = nextState.configured === true;
         document.getElementById("status-title").textContent = configured ? "Vault verbunden" : "Noch kein Vault ausgewählt";
         document.getElementById("status-path").textContent = configured ? nextState.vaultPath : "Der MCP kann erst nach der Auswahl auf Vault-Notizen zugreifen.";
         if (Array.isArray(nextState.retrievalRoots)) document.getElementById("roots").value = nextState.retrievalRoots.join("\n");
         if (Array.isArray(nextState.excludePaths)) document.getElementById("excludes").value = nextState.excludePaths.join("\n");
-        document.getElementById("save").disabled = !configured;
+        updateButtons();
       }
 
       function handleResult(result) {
-        updateState(result?.structuredContent);
+        if (!result?.isError) updateState(result?.structuredContent);
         const text = result?.content?.[0]?.text;
         if (text) document.getElementById("message").textContent = text;
       }
@@ -76,6 +90,7 @@
         if (message.id !== undefined && pending.has(message.id)) {
           const entry = pending.get(message.id);
           pending.delete(message.id);
+          clearTimeout(entry.timer);
           if (message.error) entry.reject(message.error); else entry.resolve(message.result);
           return;
         }
@@ -83,12 +98,17 @@
       }, { passive: true });
 
       document.getElementById("choose").addEventListener("click", async () => {
+        busy = true;
+        updateButtons();
         document.getElementById("message").textContent = "Ordnerauswahl wird geöffnet …";
         try { handleResult(await request("tools/call", { name: "choose_vault", arguments: {} })); }
         catch (error) { document.getElementById("message").textContent = error.message || "Die Ordnerauswahl konnte nicht geöffnet werden."; }
+        finally { busy = false; updateButtons(); }
       });
 
       document.getElementById("save").addEventListener("click", async () => {
+        busy = true;
+        updateButtons();
         document.getElementById("message").textContent = "Konfiguration wird gespeichert …";
         try {
           handleResult(await request("tools/call", {
@@ -96,9 +116,19 @@
             arguments: { retrievalRoots: valuesFromTextarea("roots"), excludePaths: valuesFromTextarea("excludes") },
           }));
         } catch (error) { document.getElementById("message").textContent = error.message || "Die Konfiguration konnte nicht gespeichert werden."; }
+        finally { busy = false; updateButtons(); }
       });
 
-      request("tools/call", { name: "configure_vault", arguments: {} }).then(handleResult).catch((error) => {
+      request("ui/initialize", {
+        appInfo: { name: "obsidian-vault-assistant", version: "0.5.3" },
+        appCapabilities: {},
+        protocolVersion: "2026-01-26",
+      }).then(async () => {
+        window.parent.postMessage({ jsonrpc: "2.0", method: "ui/notifications/initialized", params: {} }, "*");
+        ready = true;
+        updateButtons();
+        handleResult(await request("tools/call", { name: "configure_vault", arguments: {} }));
+      }).catch((error) => {
         document.getElementById("message").textContent = error.message || "Die Vault-Konfiguration konnte nicht geladen werden.";
       });
     </script>

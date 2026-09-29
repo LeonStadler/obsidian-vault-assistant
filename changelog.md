@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.5.3 — 2026-09-30
+
+### Fixes
+
+- `scripts/vault-scope.mjs` and `scripts/vault-mcp-server.mjs`: enforce saved retrieval roots and exclusions for direct and batch reads, writes, directory creation, moves, and metadata; reject relative paths and symlink escapes; prune excluded folders before directory listing, recursive tree traversal, and glob searches. Normalize configuration paths before validation and avoid caching failed filesystem connections.
+- `ui/vault-setup.html`: initialize the MCP App before tool calls, disable concurrent actions, report unanswered requests, and preserve the configured form after tool errors.
+- `scripts/configure-vault.sh`: reject absolute or missing retrieval folders before persisting configuration and create local configuration files with private permissions.
+- `scripts/install-local.sh`: register the actual installation path, including custom `CODEX_HOME`, and exclude dependency directories from source copies.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `scripts/install-runtime.sh`, `scripts/start-vault-mcp.sh`, and `.gitignore`: declare and lock runtime dependencies, share installation logic with three explicit attempts, disable dependency install scripts, and mark only successful runtime installations as ready. Add syntax and smoke-test commands and ignore local dependencies.
+- `scripts/test-vault-mcp.py`: run stdio integration checks against an isolated temporary Vault and fresh locked runtime, covering filesystem operations, media, forbidden paths, filtered listings, symlink escapes, scope saves, and unconfigured setup. Bound response waits and clean up test processes and files.
+- `.codex-plugin/plugin.json`, `package.json`, `package-lock.json`, `scripts/vault-mcp-server.mjs`, and `ui/vault-setup.html`: synchronize version `0.5.3` after validation.
+
+### Docs
+
+- `README.md`, `INSTALL.md`, `docs/legal/privacy-policy.md`, and `skills/vault-context/SKILL.md`: describe enforced exclusions, locked installation, isolated validation, and the distinction between local filesystem access and model-provider processing of tool results.
+
 ## 0.5.2 — 2026-09-10
 
 ### Fixes

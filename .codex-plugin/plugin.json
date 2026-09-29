@@ -1,6 +1,6 @@
 {
   "name": "obsidian-vault-assistant",
-  "version": "0.5.2+codex.20260910000000",
+  "version": "0.5.3+codex.20260930000000",
   "description": "Codex plugin for Obsidian vaults: search context, enrich notes, improve structure, and audit stale content.",
   "author": {
     "name": "Leon Stadler",

@@ -26,6 +26,7 @@ if [ "$repo_dir" != "$plugin_dir" ]; then
     --exclude '.vault-path' \
     --exclude '.vault-config.json' \
     --exclude '.mcp-server' \
+    --exclude 'node_modules' \
     "$repo_dir/" \
     "$plugin_dir/"
 fi
@@ -43,9 +44,9 @@ vault_path="$(tr -d '\n' < "$plugin_dir/.vault-path")"
 
 mcp_server_dir="$plugin_dir/.mcp-server"
 mkdir -p "$mcp_server_dir"
-npm install --prefix "$mcp_server_dir" --no-save @modelcontextprotocol/server-filesystem
+bash "$plugin_dir/scripts/install-runtime.sh" "$mcp_server_dir"
 
-MARKETPLACE_FILE="$marketplace_file" python3 - <<'PY'
+MARKETPLACE_FILE="$marketplace_file" PLUGIN_INSTALL_PATH="$plugin_dir" python3 - <<'PY'
 import json
 import os
 from pathlib import Path
@@ -55,7 +56,7 @@ entry = {
     "name": "obsidian-vault-assistant",
     "source": {
         "source": "local",
-        "path": "./.codex/plugins/obsidian-vault-assistant",
+        "path": os.environ["PLUGIN_INSTALL_PATH"],
     },
     "policy": {
         "installation": "AVAILABLE",

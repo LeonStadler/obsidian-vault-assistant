@@ -63,7 +63,9 @@ Restart Codex after installation, then enable `obsidian-vault-assistant` under `
 2. Install the MCP server package:
 
 ```bash
-npm install --prefix "$HOME/.codex/plugins/obsidian-vault-assistant/.mcp-server" --no-save @modelcontextprotocol/server-filesystem
+mkdir -p .mcp-server
+cp package.json package-lock.json .mcp-server/
+npm ci --prefix .mcp-server --ignore-scripts
 chmod +x "$HOME/.codex/plugins/obsidian-vault-assistant/scripts/start-vault-mcp.sh"
 ```
 
@@ -143,7 +145,7 @@ The Vault path is stored locally and the bundled MCP reads it when it starts. In
 - `ui/vault-setup.html` provides the in-Codex Vault and retrieval-scope form
 - the filesystem MCP server is installed locally under `.mcp-server/`
 - startup uses `node` directly instead of `npx`
-- `excludePaths` are enforced by the retrieval skills; the MCP directory sandbox is defined by `retrievalRoots`
+- `retrievalRoots` and `excludePaths` are enforced by the MCP proxy for reads, writes, moves, and listings; recursive searches prune excluded folders before reading them. Symlink targets are checked against the same scope
 
 The MCP is a retrieval transport, not a global memory database. Search results are loaded only for the current task. The agent does not create an automatic Memory note or a vector index.
 
@@ -175,5 +177,11 @@ These files are created on your machine and must not be committed:
 
 - Vault content is read from your local machine.
 - The MCP server reads only the configured retrieval roots.
-- Retrieval skills exclude the configured technical, media, and archive paths.
-- Nothing is sent outside your machine unless you connect other services yourself.
+- The MCP proxy denies access to configured exclusions, including direct requests and symlink aliases.
+- Tool results sent to Codex become part of the model context and may be processed by the configured model provider. The plugin does not independently upload or index Vault contents.
+
+## Validation
+
+Run `npm run check` for JavaScript and shell syntax checks and `npm test` for the real stdio MCP smoke test. Tests create an isolated temporary Vault and configuration, install the locked runtime there, and remove it afterward. They exercise setup, reads, writes, moves, media, exclusions, scope changes, and symlink boundaries. They do not alter your selected Vault. The native folder picker and the rendered MCP App require verification in Codex.
+
+Runtime versions are declared in `package.json` and resolved in `package-lock.json`. Startup uses `npm ci --ignore-scripts` when the runtime is absent or the lockfile changes. `VAULT_MCP_CONFIG_DIR` can explicitly select a separate configuration and runtime directory for tests or automation; normal startup uses the stable local plugin directory.

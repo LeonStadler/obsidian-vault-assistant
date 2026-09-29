@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+umask 077
 
 usage() {
   printf 'Usage: %s [VAULT_PATH]\n' "$0"
@@ -124,11 +125,17 @@ roots = [value.strip() for value in os.environ["CONFIG_ROOTS"].splitlines() if v
 excludes = [value.strip() for value in os.environ["CONFIG_EXCLUDES"].splitlines() if value.strip()]
 
 for relative_path in roots + excludes:
+    if Path(relative_path).is_absolute():
+        raise SystemExit(f"Path must be relative to the selected vault: {relative_path}")
     candidate = (vault_path / relative_path).resolve()
     try:
         candidate.relative_to(vault_path)
     except ValueError as error:
         raise SystemExit(f"Path must stay inside the selected vault: {relative_path}") from error
+
+for relative_path in roots:
+    if not (vault_path / relative_path).is_dir():
+        raise SystemExit(f"Retrieval folder does not exist or is not a directory: {relative_path}")
 
 config = {
     "retrievalRoots": roots,

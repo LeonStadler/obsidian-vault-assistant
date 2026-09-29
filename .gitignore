@@ -5,3 +5,4 @@
 .vault-config.json
 .mcp-server/
 __pycache__/
+node_modules/

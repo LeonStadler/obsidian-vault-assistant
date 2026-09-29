@@ -2,7 +2,7 @@
 
 Codex plugin for working with Obsidian vaults locally.
 
-Current version: `0.5.2`
+Current version: `0.5.3`
 
 ## What it does
 
@@ -24,7 +24,7 @@ For project work, this means the agent follows the existing project folders, lin
 
 ## Privacy
 
-This plugin is designed to run locally. Vault content stays on your machine unless you explicitly connect other external services.
+The filesystem MCP runs locally and enforces the configured retrieval roots and exclusions. Note content returned to Codex enters the model context and may be processed by the configured model provider. The plugin does not independently upload or index your Vault.
 
 ## Trademark
 
@@ -55,7 +55,7 @@ Install the plugin from the marketplace in Codex. The marketplace provides the f
 
 The gear on the plugin details page opens Codex's generic MCP connection settings. A local plugin manifest cannot insert its own folder picker into that host page. The Vault form is therefore opened by the MCP App after `configure_vault` is called in a chat. If a task shows `Md.obsidian Integration` or Computer Use, it used a different integration; stop that task and start the plugin's setup prompt again.
 
-The selected path and retrieval scope are stored locally on the Mac. No Vault content is uploaded, indexed into a global database, or copied into persistent memory.
+The selected path and retrieval scope are stored locally on the Mac. The plugin does not independently upload Vault content, create a global index, or copy retrieved context into persistent memory. Tool results enter the active Codex conversation.
 
 The plugin installs the filesystem MCP runtime on first use when needed. A terminal setup is only needed for Cursor, automation, or a host that cannot render MCP App UI.
 
@@ -88,4 +88,4 @@ For Cursor and manual setup, see `INSTALL.md`.
 
 - This repository is meant to be shared as a GitHub Codex plugin repo.
 - The plugin is self-contained inside this folder.
-- All work stays local unless you choose to connect other tools.
+- Filesystem access is local; model processing follows your host and provider settings.

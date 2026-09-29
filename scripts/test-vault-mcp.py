@@ -4,18 +4,20 @@
 from __future__ import annotations
 
 import json
+import base64
 import os
 import shutil
 import subprocess
 import sys
-import time
+import tempfile
+import selectors
 import uuid
 from pathlib import Path
 from typing import Any
 
 
 class McpClient:
-    def __init__(self, command: list[str]) -> None:
+    def __init__(self, command: list[str], environment: dict[str, str]) -> None:
         self.process = subprocess.Popen(
             command,
             stdin=subprocess.PIPE,
@@ -23,6 +25,7 @@ class McpClient:
             stderr=subprocess.PIPE,
             text=True,
             bufsize=1,
+            env=environment,
         )
         self.request_id = 0
 
@@ -50,6 +53,10 @@ class McpClient:
         self.process.stdin.flush()
 
         while True:
+            with selectors.DefaultSelector() as selector:
+                selector.register(self.process.stdout, selectors.EVENT_READ)
+                if not selector.select(timeout=30):
+                    raise TimeoutError(f"MCP did not respond to {method} within 30 seconds")
             line = self.process.stdout.readline()
             if not line:
                 stderr = self.process.stderr.read() if self.process.stderr else ""
@@ -67,6 +74,7 @@ class McpClient:
             self.process.wait(timeout=5)
         except subprocess.TimeoutExpired:
             self.process.kill()
+            self.process.wait(timeout=5)
         stderr = self.process.stderr.read() if self.process.stderr else ""
         return stderr
 
@@ -82,34 +90,30 @@ def extract_text(result: dict[str, Any]) -> str:
 
 def is_success(name: str, detail: str) -> bool:
     lowered = detail.lower()
-    if "access denied" in lowered or "error" in lowered or "failed" in lowered:
+    if any(value in lowered for value in ["access denied", "error", "failed", "missing", "not configured"]):
         return False
     if name == "read_media_file" and detail == "skipped":
         return True
     return len(detail.strip()) > 0
 
 
-def main() -> int:
-    plugin_dir = Path(os.environ.get("PLUGIN_DIR", Path.home() / ".codex/plugins/obsidian-vault-assistant"))
-    stable_plugin_dir = Path(os.environ.get("STABLE_PLUGIN_DIR", plugin_dir))
+def run_smoke(config_dir: Path) -> int:
+    plugin_dir = Path(os.environ.get("PLUGIN_DIR", Path(__file__).resolve().parent.parent))
     start_script = plugin_dir / "scripts/start-vault-mcp.sh"
-    configured_vault_path = ""
-    config_dir = stable_plugin_dir if (stable_plugin_dir / ".vault-path").exists() else plugin_dir
-    if (config_dir / ".vault-path").exists():
-        configured_vault_path = (config_dir / ".vault-path").read_text().strip()
-    requested_vault_path = os.environ.get("VAULT_PATH", "").strip()
-    vault_path = requested_vault_path or configured_vault_path
-    if not configured_vault_path or not (config_dir / ".vault-config.json").exists():
-        print("Create .vault-path and .vault-config.json before running the smoke test.", file=sys.stderr)
-        return 1
-    if requested_vault_path and Path(requested_vault_path).resolve() != Path(configured_vault_path).resolve():
-        print("VAULT_PATH does not match the configured .vault-path.", file=sys.stderr)
-        return 1
-    if not start_script.exists():
-        print(f"Missing start script: {start_script}", file=sys.stderr)
-        return 1
-
-    client = McpClient(["bash", str(start_script)])
+    vault = config_dir / "vault"
+    vault.mkdir()
+    archive = vault / "Archive"
+    archive.mkdir()
+    (archive / "private.md").write_text("EXCLUDED_CONTENT")
+    (vault / "archive-alias").symlink_to(archive, target_is_directory=True)
+    outside = config_dir / "outside"
+    outside.mkdir()
+    (outside / "private.md").write_text("OUTSIDE_CONTENT")
+    (vault / "outside-alias").symlink_to(outside, target_is_directory=True)
+    (config_dir / ".vault-path").write_text(str(vault) + "\n")
+    (config_dir / ".vault-config.json").write_text(json.dumps({"retrievalRoots": ["."], "excludePaths": ["Archive"]}))
+    environment = {**os.environ, "VAULT_MCP_CONFIG_DIR": str(config_dir)}
+    client = McpClient(["bash", str(start_script)], environment)
 
     results: list[tuple[str, str]] = []
     test_dir_name = f".codex-mcp-test-{uuid.uuid4().hex[:8]}"
@@ -280,18 +284,57 @@ def main() -> int:
         )
         results.append(("move_file", moved.strip() or "moved"))
 
-        media_result = "skipped"
-        icon_candidates = list(Path(vault_root).rglob("*.png"))
-        if icon_candidates:
-            icon_path = str(icon_candidates[0].relative_to(vault_root))
-            media = extract_text(
-                client.request(
-                    "tools/call",
-                    {"name": "read_media_file", "arguments": {"path": icon_path}},
-                )
-            )
-            media_result = "ok" if "image" in media.lower() or "base64" in media.lower() else media[:80]
-        results.append(("read_media_file", media_result))
+        image_path = Path(test_dir) / "smoke.png"
+        image_path.write_bytes(base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII="))
+        media = client.request("tools/call", {"name": "read_media_file", "arguments": {"path": str(image_path)}})
+        results.append(("read_media_file", "ok" if any(item.get("type") == "image" for item in media.get("content", [])) else "failed"))
+
+        for name, arguments in [
+            ("read_text_file", {"path": str(archive / "private.md")}),
+            ("read_multiple_files", {"paths": [moved_file, str(archive / "private.md")]}),
+            ("write_file", {"path": str(archive / "new.md"), "content": "blocked"}),
+            ("create_directory", {"path": str(archive / "new-folder" / "nested")}),
+            ("move_file", {"source": moved_file, "destination": str(archive / "moved.md")}),
+            ("read_text_file", {"path": str(vault / "archive-alias" / "private.md")}),
+            ("read_text_file", {"path": str(vault / "outside-alias" / "private.md")}),
+            ("read_text_file", {"path": "relative.md"}),
+        ]:
+            denied = client.request("tools/call", {"name": name, "arguments": arguments})
+            results.append((f"scope_denies_{name}", "ok" if denied.get("isError") else "failed to deny access"))
+
+        for name, arguments in [
+            ("list_directory", {"path": str(vault)}),
+            ("list_directory_with_sizes", {"path": str(vault), "sortBy": "size"}),
+            ("directory_tree", {"path": str(vault)}),
+            ("search_files", {"path": str(vault), "pattern": "**/*"}),
+        ]:
+            response = client.request("tools/call", {"name": name, "arguments": arguments})
+            text = extract_text(response)
+            hidden = all(value not in text for value in ["Archive", "archive-alias", "outside-alias", "private.md"])
+            results.append((f"scope_filters_{name}", "ok" if hidden and not response.get("isError") else "failed to filter scope"))
+
+        invalid = client.request("tools/call", {"name": "save_vault_scope", "arguments": {"retrievalRoots": ["../outside"], "excludePaths": []}})
+        results.append(("reject_invalid_scope", "ok" if invalid.get("isError") else "failed"))
+        state = client.request("tools/call", {"name": "configure_vault", "arguments": {}})
+        results.append(("preserve_scope_after_invalid_save", "ok" if state.get("structuredContent", {}).get("excludePaths") == ["Archive"] else "failed"))
+        saved = client.request("tools/call", {"name": "save_vault_scope", "arguments": {"retrievalRoots": [f" {test_dir_name} "], "excludePaths": [" Archive "]}})
+        results.append(("save_trimmed_scope", "ok" if saved.get("structuredContent", {}).get("retrievalRoots") == [test_dir_name] else "failed"))
+        outside_root = client.request("tools/call", {"name": "list_directory", "arguments": {"path": str(vault)}})
+        results.append(("deny_outside_narrowed_root", "ok" if outside_root.get("isError") else "failed"))
+
+        fresh = config_dir / "fresh"
+        fresh.mkdir()
+        (fresh / ".mcp-server").symlink_to(config_dir / ".mcp-server", target_is_directory=True)
+        fresh_client = McpClient(["bash", str(start_script)], {**environment, "VAULT_MCP_CONFIG_DIR": str(fresh)})
+        try:
+            fresh_client.request("initialize", {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "fresh-vault-smoke", "version": "1.0.0"}})
+            fresh_client.notify("notifications/initialized")
+            fresh_tools = fresh_client.request("tools/list").get("tools", [])
+            results.append(("unconfigured_setup_tools", "ok" if {tool["name"] for tool in fresh_tools} == {"configure_vault", "choose_vault", "save_vault_scope"} else "failed"))
+            fresh_state = fresh_client.request("tools/call", {"name": "configure_vault", "arguments": {}})
+            results.append(("unconfigured_setup_state", "ok" if fresh_state.get("structuredContent", {}).get("configured") is False else "failed"))
+        finally:
+            fresh_client.close()
 
         passed = 0
         failed = 0
@@ -310,7 +353,12 @@ def main() -> int:
         client.close()
         for path in cleanup_paths:
             if path.exists():
-                shutil.rmtree(path, ignore_errors=True)
+                shutil.rmtree(path)
+
+
+def main() -> int:
+    with tempfile.TemporaryDirectory(prefix="vault-mcp-smoke-") as directory:
+        return run_smoke(Path(directory).resolve())
 
 
 if __name__ == "__main__":

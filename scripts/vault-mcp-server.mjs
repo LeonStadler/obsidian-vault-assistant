@@ -5,6 +5,7 @@ import { readFile, writeFile, mkdir, chmod, stat, realpath } from "node:fs/promi
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { scopedListing, validateScopedPath, resolveDestination } from "./vault-scope.mjs";
 
 const nodeModulesDir = process.env.VAULT_MCP_NODE_MODULES;
 const filesystemEntry = process.env.VAULT_MCP_FILESYSTEM_ENTRY;
@@ -35,6 +36,7 @@ const {
 } = await import(pathToFileURL(path.join(sdkBase, "types.js")).href);
 
 const UI_RESOURCE_URI = "ui://obsidian-vault-assistant/vault-setup-v1.html";
+const { minimatch } = await import(pathToFileURL(path.join(nodeModulesDir, "minimatch", "dist", "esm", "index.js")).href);
 const DEFAULT_EXCLUDES = [".obsidian", ".git", "Attachments", "Archive", "Archiv"];
 const setupUiPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../ui/vault-setup.html");
 const setupUi = await readFile(setupUiPath, "utf8");
@@ -69,8 +71,8 @@ async function validateConfiguration(candidateVaultPath, candidateConfig) {
   if (!vaultStats.isDirectory()) throw new Error(`Selected Vault is not a directory: ${vaultPath}`);
 
   const resolvedVaultPath = await realpath(vaultPath);
-  const roots = candidateConfig.retrievalRoots;
-  const excludes = candidateConfig.excludePaths;
+  const roots = Array.isArray(candidateConfig.retrievalRoots) ? candidateConfig.retrievalRoots.map((value) => typeof value === "string" ? value.trim() : value) : null;
+  const excludes = Array.isArray(candidateConfig.excludePaths) ? candidateConfig.excludePaths.map((value) => typeof value === "string" ? value.trim() : value) : null;
   if (!Array.isArray(roots) || roots.length === 0 || !roots.every((value) => typeof value === "string" && value.trim())) {
     throw new Error("At least one retrieval folder is required.");
   }
@@ -101,6 +103,7 @@ async function validateConfiguration(candidateVaultPath, candidateConfig) {
       excludePaths: excludes.map((value) => value.trim()),
     },
     resolvedRoots,
+    resolvedExcludes: await Promise.all(excludes.map((excluded) => resolveDestination(path.resolve(resolvedVaultPath, excluded)))),
   };
 }
 
@@ -174,8 +177,14 @@ async function ensureFilesystemClient() {
     args: [filesystemEntry, ...validated.resolvedRoots],
     stderr: "inherit",
   });
-  filesystemClient = new Client({ name: "obsidian-vault-assistant-proxy", version: "0.5.2" });
-  await filesystemClient.connect(transport);
+  const client = new Client({ name: "obsidian-vault-assistant-proxy", version: "0.5.3" });
+  try {
+    await client.connect(transport);
+  } catch (error) {
+    await client.close();
+    throw error;
+  }
+  filesystemClient = client;
   return filesystemClient;
 }
 
@@ -216,7 +225,7 @@ const setupTools = [
 ];
 
 const server = new Server(
-  { name: "obsidian-vault-assistant", version: "0.5.2" },
+  { name: "obsidian-vault-assistant", version: "0.5.3" },
   {
     capabilities: { tools: { listChanged: true }, resources: {} },
     instructions:
@@ -230,7 +239,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     const client = await ensureFilesystemClient();
     if (client) tools.push(...(await client.listTools()).tools);
   } catch (error) {
-    console.error(`Filesystem MCP is not ready: ${error.message}`);
+    console.error(JSON.stringify({ event: "filesystem_not_ready", error: error.message }));
   }
   return { tools };
 });
@@ -261,6 +270,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     const client = await ensureFilesystemClient();
     if (!client) throw new Error("No Vault is configured. Open configure_vault first.");
+    const localConfig = await loadConfig();
+    const scope = await validateConfiguration(localConfig.vaultPath, localConfig.config);
+    const knownTools = (await client.listTools()).tools;
+    if (!knownTools.some((tool) => tool.name === name)) throw new Error(`Unknown Vault tool: ${name}`);
+    const paths = name === "move_file" ? [args.source, args.destination] :
+      name === "read_multiple_files" ? args.paths : name === "list_allowed_directories" ? [] : [args.path];
+    if (!Array.isArray(paths)) throw new Error(`Invalid path arguments for Vault tool: ${name}`);
+    for (const candidate of paths) await validateScopedPath(scope, candidate);
+    const listing = await scopedListing(scope, name, args, minimatch);
+    if (listing) return listing;
     return await client.callTool({ name, arguments: args });
   } catch (error) {
     return errorResult(error);
