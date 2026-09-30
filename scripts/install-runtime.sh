@@ -15,7 +15,7 @@ mkdir -p "$runtime_dir"
 : > "$runtime_dir/.runtime-lock.json"
 cp "$plugin_dir/package.json" "$plugin_dir/package-lock.json" "$runtime_dir/"
 for attempt in 1 2 3; do
-  if npm ci --prefix "$runtime_dir" --ignore-scripts --no-audit --no-fund >&2; then
+  if npm ci --prefix "$runtime_dir" --omit=dev --ignore-scripts --no-audit --no-fund >&2; then
     cp "$plugin_dir/package-lock.json" "$runtime_dir/.runtime-lock.json"
     exit 0
   else

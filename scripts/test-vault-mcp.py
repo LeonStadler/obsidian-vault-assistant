@@ -112,7 +112,25 @@ def run_smoke(config_dir: Path) -> int:
     (vault / "outside-alias").symlink_to(outside, target_is_directory=True)
     (config_dir / ".vault-path").write_text(str(vault) + "\n")
     (config_dir / ".vault-config.json").write_text(json.dumps({"retrievalRoots": ["."], "excludePaths": ["Archive"]}))
-    environment = {**os.environ, "VAULT_MCP_CONFIG_DIR": str(config_dir)}
+    picker_bin = config_dir / "picker-bin"
+    picker_bin.mkdir()
+    picker_result = config_dir / "picker-result"
+    picker_script = picker_bin / "osascript"
+    picker_script.write_text(
+        '#!/bin/sh\n'
+        'if [ "$(cat "$VAULT_MCP_TEST_PICKER_RESULT")" = CANCEL ]; then\n'
+        '  printf "execution error: User canceled. (-128)\\n" >&2\n'
+        '  exit 1\n'
+        'fi\n'
+        'cat "$VAULT_MCP_TEST_PICKER_RESULT"\n'
+    )
+    picker_script.chmod(0o755)
+    environment = {
+        **os.environ,
+        "PATH": f"{picker_bin}{os.pathsep}{os.environ['PATH']}",
+        "VAULT_MCP_CONFIG_DIR": str(config_dir),
+        "VAULT_MCP_TEST_PICKER_RESULT": str(picker_result),
+    }
     client = McpClient(["bash", str(start_script)], environment)
 
     results: list[tuple[str, str]] = []
@@ -137,6 +155,11 @@ def run_smoke(config_dir: Path) -> int:
         tools = client.request("tools/list")
         tool_names = sorted(tool.get("name", "") for tool in tools.get("tools", []))
         results.append(("tools/list", ", ".join(tool_names)))
+        capabilities = init.get("capabilities", {})
+        settings_capability = capabilities.get("experimental", {}).get("openai/settings", {})
+        canonical_settings_capability = capabilities.get("extensions", {}).get("openai/settings", {})
+        expected_settings_capability = {"readTool": "settings.read", "updateTool": "settings.update"}
+        results.append(("settings_capability", "ok" if settings_capability == expected_settings_capability and canonical_settings_capability == expected_settings_capability else json.dumps(capabilities)))
 
         setup_tool = next((tool for tool in tools.get("tools", []) if tool.get("name") == "configure_vault"), None)
         setup_meta = setup_tool.get("_meta", {}) if setup_tool else {}
@@ -144,14 +167,20 @@ def run_smoke(config_dir: Path) -> int:
         results.append(("configure_vault_ui", setup_uri if setup_uri else "missing UI resource metadata"))
 
         resources = client.request("resources/list").get("resources", [])
-        resource_uri = resources[0].get("uri", "") if resources else ""
+        resource_uri = next((item.get("uri", "") for item in resources if item.get("uri") == "ui://obsidian-vault-assistant/vault-setup-v1.html"), "")
         resource = client.request("resources/read", {"uri": resource_uri}) if resource_uri else {}
         resource_content = resource.get("contents", [{}])[0]
-        resource_ok = resource_content.get("mimeType") == "text/html;profile=mcp-app" and "Vault auswählen" in resource_content.get("text", "")
-        results.append(("vault_setup_resource", "ok" if resource_ok else "missing MCP App resource"))
+        resource_html = resource_content.get("text", "")
+        resource_ok = resource_content.get("mimeType") == "text/html;profile=mcp-app" and "Obsidian-Vault verbinden" in resource_html and "__VAULT_SETUP_BUNDLE__" not in resource_html and "choose_vault" in resource_html
+        results.append(("vault_setup_resource", "ok" if resource_ok else f"mime={resource_content.get('mimeType')}; title={'Obsidian-Vault verbinden' in resource_html}; marker={'__VAULT_SETUP_BUNDLE__' in resource_html}; app={'choose_vault' in resource_html}; length={len(resource_html)}"))
 
         config_state = client.request("tools/call", {"name": "configure_vault", "arguments": {}}).get("structuredContent", {})
         results.append(("configure_vault", "configured" if config_state.get("configured") else "not configured"))
+        status_state = client.request("tools/call", {"name": "get_vault_status", "arguments": {}}).get("structuredContent", {})
+        results.append(("ready_vault_status", "ok" if status_state.get("status") == "ready" else str(status_state.get("status"))))
+        settings = client.request("tools/call", {"name": "settings.read", "arguments": {}}).get("structuredContent", {})
+        settings_layout = settings.get("layout", [{}])[0].get("items", [])
+        results.append(("settings_read", "ok" if settings.get("values", {}).get("excludePaths") == "Archive" and any(item.get("kind") == "tool" and item.get("tool") == "configure_vault" for item in settings_layout) else "failed"))
 
         allowed = extract_text(client.request("tools/call", {"name": "list_allowed_directories", "arguments": {}}))
         vault_root = allowed.splitlines()[-1].strip()
@@ -317,6 +346,11 @@ def run_smoke(config_dir: Path) -> int:
         results.append(("reject_invalid_scope", "ok" if invalid.get("isError") else "failed"))
         state = client.request("tools/call", {"name": "configure_vault", "arguments": {}})
         results.append(("preserve_scope_after_invalid_save", "ok" if state.get("structuredContent", {}).get("excludePaths") == ["Archive"] else "failed"))
+        invalid_connect = client.request("tools/call", {"name": "connect_vault", "arguments": {"selectionId": str(uuid.uuid4()), "excludePaths": []}})
+        state = client.request("tools/call", {"name": "get_vault_status", "arguments": {}}).get("structuredContent", {})
+        results.append(("preserve_connection_after_failed_connect", "ok" if invalid_connect.get("isError") and state.get("status") == "ready" and state.get("excludePaths") == ["Archive"] else "failed"))
+        settings_updated = client.request("tools/call", {"name": "settings.update", "arguments": {"set": {"excludePaths": "Archive\n"}}})
+        results.append(("settings_update", "ok" if settings_updated.get("structuredContent", {}).get("values", {}).get("excludePaths") == "Archive" else extract_text(settings_updated) or "failed"))
         saved = client.request("tools/call", {"name": "save_vault_scope", "arguments": {"retrievalRoots": [f" {test_dir_name} "], "excludePaths": [" Archive "]}})
         results.append(("save_trimmed_scope", "ok" if saved.get("structuredContent", {}).get("retrievalRoots") == [test_dir_name] else "failed"))
         outside_root = client.request("tools/call", {"name": "list_directory", "arguments": {"path": str(vault)}})
@@ -330,11 +364,69 @@ def run_smoke(config_dir: Path) -> int:
             fresh_client.request("initialize", {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "fresh-vault-smoke", "version": "1.0.0"}})
             fresh_client.notify("notifications/initialized")
             fresh_tools = fresh_client.request("tools/list").get("tools", [])
-            results.append(("unconfigured_setup_tools", "ok" if {tool["name"] for tool in fresh_tools} == {"configure_vault", "choose_vault", "save_vault_scope"} else "failed"))
+            results.append(("unconfigured_setup_tools", "ok" if {"configure_vault", "choose_vault", "connect_vault", "get_vault_status", "settings.read", "settings.update"}.issubset({tool["name"] for tool in fresh_tools}) else "failed"))
             fresh_state = fresh_client.request("tools/call", {"name": "configure_vault", "arguments": {}})
             results.append(("unconfigured_setup_state", "ok" if fresh_state.get("structuredContent", {}).get("configured") is False else "failed"))
+            fresh_status = fresh_client.request("tools/call", {"name": "get_vault_status", "arguments": {}}).get("structuredContent", {})
+            results.append(("unconfigured_status", "ok" if fresh_status.get("status") == "unconfigured" and fresh_status.get("excludePaths") == [".obsidian", ".git", ".trash"] else "failed"))
         finally:
             fresh_client.close()
+
+        for scenario, vault_path, exclude_paths, expected_status in [
+            ("invalid", str(vault), ["private*"], "invalid"),
+            ("unavailable", str(config_dir / "moved-vault"), [".obsidian", ".git", ".trash"], "unavailable"),
+        ]:
+            profile = config_dir / scenario
+            profile.mkdir()
+            (profile / ".mcp-server").symlink_to(config_dir / ".mcp-server", target_is_directory=True)
+            (profile / ".vault-config.json").write_text(json.dumps({"vaultPath": vault_path, "retrievalRoots": ["."], "excludePaths": exclude_paths}))
+            scenario_client = McpClient(["bash", str(start_script)], {**environment, "VAULT_MCP_CONFIG_DIR": str(profile)})
+            try:
+                scenario_client.request("initialize", {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": f"{scenario}-vault-smoke", "version": "1.0.0"}})
+                scenario_client.notify("notifications/initialized")
+                status = scenario_client.request("tools/call", {"name": "get_vault_status", "arguments": {}}).get("structuredContent", {})
+                results.append((f"{scenario}_status", "ok" if status.get("status") == expected_status else str(status.get("status"))))
+            finally:
+                scenario_client.close()
+
+        if sys.platform == "darwin":
+            old_state = client.request("tools/call", {"name": "get_vault_status", "arguments": {}}).get("structuredContent", {})
+            picker_result.write_text("CANCEL")
+            cancelled = client.request("tools/call", {"name": "choose_vault", "arguments": {}}).get("structuredContent", {})
+            still_connected = client.request("tools/call", {"name": "get_vault_status", "arguments": {}}).get("structuredContent", {})
+            results.append(("picker_cancel_preserves_connection", "ok" if cancelled.get("cancelled") and still_connected.get("vaultPath") == old_state.get("vaultPath") else "failed"))
+
+            selected_vault = config_dir / "selected-vault"
+            (selected_vault / ".obsidian").mkdir(parents=True)
+            (selected_vault / "Archive").mkdir()
+            (selected_vault / "Archive" / "allowed.md").write_text("Archive remains accessible by default.")
+            (selected_vault / ".trash").mkdir()
+            (selected_vault / ".trash" / "hidden.md").write_text("excluded")
+            cleanup_paths.append(selected_vault)
+            picker_result.write_text(str(selected_vault))
+            draft = client.request("tools/call", {"name": "choose_vault", "arguments": {}}).get("structuredContent", {})
+            before_confirm = client.request("tools/call", {"name": "get_vault_status", "arguments": {}}).get("structuredContent", {})
+            results.append(("selection_is_staged", "ok" if draft.get("selection", {}).get("vaultPath") == str(selected_vault) and draft.get("selection", {}).get("recognized") is True and before_confirm.get("vaultPath") == old_state.get("vaultPath") else "failed"))
+
+            failed_connect = client.request("tools/call", {"name": "connect_vault", "arguments": {"selectionId": draft["selection"]["selectionId"], "excludePaths": ["private*"]}})
+            after_failed_connect = client.request("tools/call", {"name": "get_vault_status", "arguments": {}}).get("structuredContent", {})
+            results.append(("failed_connect_preserves_connection", "ok" if failed_connect.get("isError") and after_failed_connect.get("vaultPath") == old_state.get("vaultPath") else "failed"))
+
+            connected = client.request("tools/call", {"name": "connect_vault", "arguments": {"selectionId": draft["selection"]["selectionId"], "excludePaths": [".obsidian", ".git", ".trash"]}}).get("structuredContent", {})
+            results.append(("connect_selected_vault", "ok" if connected.get("status") == "ready" and connected.get("vaultPath") == str(selected_vault) else "failed"))
+            selected_listing = extract_text(client.request("tools/call", {"name": "list_directory", "arguments": {"path": str(selected_vault)}}))
+            results.append(("default_exclusions_keep_archive", "ok" if "Archive" in selected_listing and ".trash" not in selected_listing and ".obsidian" not in selected_listing else "failed"))
+            selected_note = selected_vault / "connected-note.md"
+            client.request("tools/call", {"name": "write_file", "arguments": {"path": str(selected_note), "content": "# Connected Vault\n"}})
+            selected_read = extract_text(client.request("tools/call", {"name": "read_text_file", "arguments": {"path": str(selected_note)}}))
+            results.append(("read_write_after_connect", "ok" if "Connected Vault" in selected_read else "failed"))
+
+            client.close()
+            client = McpClient(["bash", str(start_script)], environment)
+            client.request("initialize", {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "vault-reconnect-smoke", "version": "1.0.0"}})
+            client.notify("notifications/initialized")
+            restarted = client.request("tools/call", {"name": "get_vault_status", "arguments": {}}).get("structuredContent", {})
+            results.append(("connection_survives_restart", "ok" if restarted.get("status") == "ready" and restarted.get("vaultPath") == str(selected_vault) else "failed"))
 
         passed = 0
         failed = 0

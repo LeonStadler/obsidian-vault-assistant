@@ -1,0 +1,6 @@
+interface:
+  display_name: "Vault verbinden"
+  short_description: "Lokalen Obsidian Vault verbinden"
+  default_prompt: "Prüfe den Status des obsidianVaultFilesystem Vaults. Wenn er noch nicht verbunden oder nicht verfügbar ist, öffne den nativen Setup-Assistenten und verbinde den gewählten Ordner nach Bestätigung."
+policy:
+  allow_implicit_invocation: true

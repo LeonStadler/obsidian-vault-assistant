@@ -1,15 +1,22 @@
 {
   "name": "obsidian-vault-assistant",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check scripts/vault-mcp-server.mjs && node --check scripts/vault-scope.mjs && bash -n scripts/start-vault-mcp.sh scripts/install-local.sh scripts/configure-vault.sh scripts/install-runtime.sh",
+    "build:ui": "node scripts/build-vault-ui.mjs",
+    "check": "npm run build:ui && node --check scripts/vault-mcp-server.mjs && node --check scripts/vault-scope.mjs && node --check ui/vault-setup.js && bash -n scripts/start-vault-mcp.sh scripts/install-local.sh scripts/configure-vault.sh scripts/install-runtime.sh",
     "test": "python3 scripts/test-vault-mcp.py"
   },
   "dependencies": {
+    "@modelcontextprotocol/ext-apps": "1.7.5",
     "@modelcontextprotocol/sdk": "1.30.0",
     "@modelcontextprotocol/server-filesystem": "2026.8.31",
-    "minimatch": "10.2.4"
+    "@openai/mcp-extensions": "0.1.0",
+    "minimatch": "10.2.4",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
   }
 }

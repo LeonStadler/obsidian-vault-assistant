@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.6.0 — 2026-09-30
+
+### Features
+
+- `plugin.json` and `mcp.json`: add the portable Agent Plugins manifest and bundled MCP configuration; register the Codex onboarding skill and three German starter prompts. Keep `.codex-plugin/plugin.json` and `.mcp.json` aligned as the Codex compatibility path.
+- `skills/vault-setup/SKILL.md` and `skills/vault-setup/agents/openai.yaml`: add the post-install status check and guided setup workflow. Setup opens only for a missing or broken connection.
+- `scripts/vault-mcp-server.mjs`: add non-mutating `get_vault_status`, staged `choose_vault`, confirmed `connect_vault`, atomic config persistence, temporary read/write probes, and the Codex settings read/update tools with a “Vault verwalten” action. Preserve prior roots and exclusions when reconnecting the same Vault.
+- `ui/vault-setup.html`, `ui/vault-setup.js`, `ui/vault-setup.bundle.html`, and `scripts/build-vault-ui.mjs`: add the accessible German MCP App, native macOS folder selection, path review, optional relative exclusions, connection feedback, keyboard focus, host theme/font styling, and an offline local bundle.
+- `scripts/configure-vault.sh`: use `.obsidian`, `.git`, and `.trash` as default exclusions for new Vaults; keep `Archive`, `Archiv`, and `Attachments` accessible by default.
+- `skills/project-documentation/SKILL.md`, `skills/project-documentation/agents/openai.yaml`, and `skills/project-documentation/assets/project-documentation-routing.md`: retain the project documentation routing workflow from `main` on the feature branch.
+
+### Fixes
+
+- `scripts/install-local.sh`: stop opening a folder dialog during a no-argument install so Codex onboarding owns first-use setup; retain `--select` as an explicit terminal option.
+- `scripts/vault-mcp-server.mjs` and `ui/vault-setup.js`: leave the active connection intact on picker cancellation or failed validation, retain existing scope on same-Vault reconnection, and re-enable controls after successful connection.
+- `skills/vault-context/SKILL.md`, `skills/vault-enrichment/SKILL.md`, `skills/vault-audit/SKILL.md`, `skills/vault-structure/SKILL.md`, and `skills/vault-templates/SKILL.md`: check connection status before Vault file operations and describe the actual new default exclusions.
+
+### Chores
+
+- `package.json` and `package-lock.json`: pin `@modelcontextprotocol/ext-apps@1.7.5`, `@openai/mcp-extensions@0.1.0`, and compatible runtime/build dependencies; install production runtime dependencies with `npm ci --omit=dev --ignore-scripts`.
+- `scripts/test-vault-mcp.py`: extend the real stdio integration run to cover settings registration, initial setup UI, status states, picker cancellation, staged connection, failed-connection preservation, default exclusions, read/write after connection, and config persistence across restart.
+
+### Docs
+
+- `README.md`, `INSTALL.md`, and `mcp.example.json`: document onboarding, Settings access, the new Vault defaults, local-only configuration, and terminal fallback.
+- `Vault: Side Projects/Obsidian Vault Assistant/Obsidian Vault Assistant.md`, `Vault: Side Projects/Obsidian Vault Assistant/Architektur.md`, and `Vault: Side Projects/Obsidian Vault Assistant/Betrieb und Entwicklung.md`: update existing project notes with the 0.6.0 design, verified integration results, and outstanding Codex-host acceptance.
+- `.codex-plugin/plugin.json`, `plugin.json`, `package.json`, `package-lock.json`, `README.md`, and `ui/vault-setup.js`: synchronize the version to `0.6.0` after validation.
+
 ## 0.5.3 — 2026-09-30
 
 ### Fixes

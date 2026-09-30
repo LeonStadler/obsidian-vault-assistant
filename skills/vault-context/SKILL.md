@@ -14,9 +14,9 @@ Use the `obsidianVaultFilesystem` MCP server for all vault file access.
 - call `list_allowed_directories` first when the allowed vault root is unclear
 - use absolute vault paths such as `$HOME/Documents/Obsidian Vault/...`; relative paths resolve against the MCP process working directory, not the vault root
 - respect the configured retrieval roots and do not read outside them
-- respect saved exclusions, including `.obsidian`, `.git`, media folders, `Archive`, and `Archiv`; accessing an excluded path requires the user to update the saved scope first
+- respect saved exclusions, including `.obsidian`, `.git`, and `.trash`; other Vault folders remain accessible unless explicitly excluded; accessing an excluded path requires the user to update the saved scope first
 - prefer subdirectory `search_files` scans on macOS if a full-vault search returns `EPERM`
-- if the Vault is not configured, call `configure_vault` on `obsidianVaultFilesystem` so the user can select it in the MCP App UI; do not use `Md.obsidian Integration`, Computer Use, or open Obsidian for setup
+- before the first Vault file operation, call `get_vault_status` on `obsidianVaultFilesystem`; if it is not `ready`, call `configure_vault` so the user can select and connect a local Vault in the MCP App UI; do not use `Md.obsidian Integration`, Computer Use, or open Obsidian for setup
 - if the MCP is unavailable after setup, stop the Vault workflow, explain that the Vault was not checked, and do not fabricate Vault context
 
 ## Workflow

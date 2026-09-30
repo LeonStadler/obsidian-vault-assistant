@@ -2,7 +2,7 @@
 
 Codex plugin for working with Obsidian vaults locally.
 
-Current version: `0.5.3`
+Current version: `0.6.0`
 
 ## What it does
 
@@ -32,12 +32,13 @@ This project is independent software and is not affiliated with, endorsed by, or
 
 ## Includes
 
-- `.codex-plugin/plugin.json` for the Codex manifest
+- `plugin.json` for plugin onboarding and MCP registration, plus `.codex-plugin/plugin.json` for Codex local-plugin compatibility
 - `skills/` for the core tasks
+- `skills/project-documentation/` for repository-to-Vault project documentation routing
 - `mcp.example.json` for Cursor and other MCP clients
 - `scripts/install-local.sh` for local plugin and MCP setup
 - `scripts/configure-vault.sh` as an optional terminal fallback for changing the local Vault and retrieval scope
-- `scripts/vault-mcp-server.mjs` and `ui/vault-setup.html` for the in-Codex Vault setup UI
+- `scripts/vault-mcp-server.mjs`, `ui/vault-setup.html`, and `ui/vault-setup.js` for the in-Codex Vault setup app
 - `scripts/start-vault-mcp.sh` for MCP startup and local runtime bootstrapping
 - `.agents/plugins/marketplace.json` for GitHub marketplace distribution
 - `docs/legal/` for the privacy policy
@@ -51,9 +52,9 @@ GitHub marketplace:
 codex plugin marketplace add LeonStadler/obsidian-vault-assistant
 ```
 
-Install the plugin from the marketplace in Codex. The marketplace provides the five skills and the bundled MCP definition. Click the first starter prompt in a new task. It explicitly calls `configure_vault` on this plugin's `obsidianVaultFilesystem` MCP, which opens the native macOS folder picker and then lets you choose retrieval folders and exclusions in the conversation UI.
+Install the plugin from the marketplace in Codex. The packaged onboarding skill checks the connection after install and opens the setup app only if the Vault is not ready. Choose the Vault folder, optionally edit exclusions, and click **Verbinden**. Starter prompts are **Vault verbinden**, **Wissen im Vault suchen**, and **Notiz ergänzen**.
 
-The gear on the plugin details page opens Codex's generic MCP connection settings. A local plugin manifest cannot insert its own folder picker into that host page. The Vault form is therefore opened by the MCP App after `configure_vault` is called in a chat. If a task shows `Md.obsidian Integration` or Computer Use, it used a different integration; stop that task and start the plugin's setup prompt again.
+Use **Vault verwalten** in the plugin settings to reopen the same app and change folders or exclusions. On a new connection, the whole Vault is accessible except `.obsidian`, `.git`, and `.trash`; `Archive`, `Archiv`, and `Attachments` are not excluded by default. Existing exclusions remain unchanged until edited.
 
 The selected path and retrieval scope are stored locally on the Mac. The plugin does not independently upload Vault content, create a global index, or copy retrieved context into persistent memory. Tool results enter the active Codex conversation.
 
@@ -64,7 +65,7 @@ Local install:
 ```bash
 git clone https://github.com/LeonStadler/obsidian-vault-assistant.git "$HOME/.codex/plugins/obsidian-vault-assistant"
 cd "$HOME/.codex/plugins/obsidian-vault-assistant"
-scripts/install-local.sh --select
+scripts/install-local.sh
 ```
 
 Restart Codex after installation and start a new task so the skills and bundled MCP are loaded.

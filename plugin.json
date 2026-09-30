@@ -1,0 +1,50 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "obsidian-vault-assistant",
+  "version": "0.6.0",
+  "description": "Obsidian Vault knowledge tools and native local setup for Codex.",
+  "author": {
+    "name": "Leon Stadler",
+    "email": "contact@leon-stadler.com",
+    "url": "https://leon-stadler.com"
+  },
+  "homepage": "https://github.com/LeonStadler/obsidian-vault-assistant",
+  "repository": "https://github.com/LeonStadler/obsidian-vault-assistant",
+  "license": "MIT",
+  "keywords": [
+    "obsidian",
+    "vault",
+    "knowledge-management",
+    "markdown",
+    "codex"
+  ],
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/vault-setup/SKILL.md",
+      "interface": {
+        "displayName": "Obsidian Vault Assistant",
+        "shortDescription": "Obsidian Vault verbinden",
+        "longDescription": "Search, read, and write notes in one local Obsidian Vault. Setup, permissions, and exclusions are managed inside Codex.",
+        "developerName": "Leon Stadler",
+        "category": "Productivity",
+        "capabilities": [
+          "Interactive",
+          "Read",
+          "Search",
+          "Write"
+        ],
+        "websiteURL": "https://github.com/LeonStadler/obsidian-vault-assistant",
+        "privacyPolicyURL": "https://github.com/LeonStadler/obsidian-vault-assistant/blob/main/docs/legal/privacy-policy.md",
+        "defaultPrompt": [
+          "Vault verbinden",
+          "Wissen im Vault suchen",
+          "Notiz ergänzen"
+        ],
+        "brandColor": "#0F766E",
+        "composerIcon": "./assets/icon.svg",
+        "logo": "./assets/logo.svg",
+        "screenshots": []
+      }
+    }
+  }
+}

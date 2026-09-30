@@ -11,7 +11,7 @@ plugin_dir="${PLUGIN_INSTALL_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 vault_path=""
 select_vault=0
 retrieval_roots=()
-exclude_paths=(".obsidian" ".git" "Attachments" "Archive" "Archiv")
+exclude_paths=(".obsidian" ".git" ".trash")
 custom_roots=0
 custom_excludes=0
 
@@ -99,7 +99,7 @@ if [ "$(uname -s)" = "Darwin" ] && command -v osascript >/dev/null 2>&1 && [ "$s
   fi
 
   if [ "$custom_excludes" -eq 0 ]; then
-    excludes_input="$(osascript -e 'text returned of (display dialog "Which relative vault folders should be excluded? Use comma-separated paths." default answer ".obsidian, .git, Attachments, Archive, Archiv" with title "Vault exclusions")')"
+    excludes_input="$(osascript -e 'text returned of (display dialog "Which relative vault paths should be excluded? Use comma-separated paths." default answer ".obsidian, .git, .trash" with title "Vault exclusions")')"
     exclude_paths=()
     while IFS= read -r exclude; do
       [ -n "$exclude" ] && exclude_paths+=("$exclude")

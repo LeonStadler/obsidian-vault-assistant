@@ -34,13 +34,14 @@ fi
 chmod +x "$plugin_dir/scripts/start-vault-mcp.sh"
 chmod +x "$plugin_dir/scripts/configure-vault.sh"
 
-if [ "$#" -eq 0 ]; then
-  "$plugin_dir/scripts/configure-vault.sh" --select
-else
+if [ "$#" -gt 0 ]; then
   "$plugin_dir/scripts/configure-vault.sh" "$@"
 fi
 
-vault_path="$(tr -d '\n' < "$plugin_dir/.vault-path")"
+vault_path="Not selected; use Vault verbinden in Codex"
+if [ -f "$plugin_dir/.vault-path" ]; then
+  vault_path="$(tr -d '\n' < "$plugin_dir/.vault-path")"
+fi
 
 mcp_server_dir="$plugin_dir/.mcp-server"
 mkdir -p "$mcp_server_dir"

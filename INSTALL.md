@@ -14,18 +14,18 @@ Add the GitHub marketplace to Codex:
 codex plugin marketplace add LeonStadler/obsidian-vault-assistant
 ```
 
-Install `obsidian-vault-assistant` from the marketplace. The marketplace provides the five skills, the bundled MCP definition, and the in-Codex Vault setup UI.
+Install `obsidian-vault-assistant` from the marketplace. The marketplace provides the Vault workflows, project documentation skill, bundled MCP definition, and in-Codex Vault setup app.
 
-After installation, start a new task and select the first starter prompt. It calls `configure_vault` on this plugin's `obsidianVaultFilesystem` MCP. The MCP App opens the native macOS folder picker. After selecting the Vault, set the allowed retrieval folders and excluded folders in the same UI and click `Konfiguration speichern`.
+After installation, use **Vault verbinden**. Codex runs the packaged onboarding skill and opens the setup app when no working connection exists. You can reopen it from the plugin's settings with **Vault verwalten**. In the app, choose the folder, review its full path, optionally change relative exclusions, then click **Verbinden**. New Vaults allow the whole folder except `.obsidian`, `.git`, and `.trash` by default; `Archive`, `Archiv`, and `Attachments` stay accessible.
 
-The gear labelled `In MCP-Einstellungen einrichten` belongs to Codex's generic host settings and cannot be extended by a local plugin with a custom folder picker. Use the setup prompt in a chat for the plugin UI. The task must show `Obsidian Vault Assistant` and `obsidianVaultFilesystem`; do not continue if it instead invokes `Md.obsidian Integration` or Computer Use.
+The Vault settings action opens the plugin's setup app from Codex settings. The app shows a saved connection and lets you change the Vault or its exclusions. The setup skill checks status before opening it, so a valid connection stays available without repeating setup.
 
-The UI flow stores `.vault-path` and `.vault-config.json` locally and does not create a global memory database or vector index. The filesystem runtime is installed automatically on first MCP startup when `npm` is available.
+The UI flow stores `.vault-config.json` locally and does not create a global memory database or vector index. Earlier installations using `.vault-path` and `.vault-config.json` remain readable. The filesystem runtime is installed automatically on first MCP startup when `npm` is available.
 
 Terminal/automation fallback:
 
 ```bash
-scripts/install-local.sh --select
+scripts/install-local.sh
 ```
 
 Terminal/automation path:
@@ -34,7 +34,7 @@ Terminal/automation path:
 scripts/install-local.sh "$HOME/Documents/Obsidian Vault"
 ```
 
-The local setup also asks for retrieval folders and exclusions when using `--select`. This fallback is not required for the normal Codex UI flow.
+Running the installer without arguments registers the plugin but does not open a folder dialog; complete setup through the Codex onboarding skill. Pass `--select` or a Vault path only when deliberately using the terminal setup. This fallback is not required for the normal Codex UI flow.
 
 ## Local install from a clone
 
@@ -50,8 +50,8 @@ The installer:
 
 - copies the plugin to `$HOME/.codex/plugins/obsidian-vault-assistant` when needed
 - installs the filesystem MCP server into `.mcp-server/` when using the fallback installer
-- writes the selected Vault path to `.vault-path`
-- writes retrieval roots and exclusions to `.vault-config.json`
+- preserves an existing Vault configuration; a fresh install can be configured later through the Codex onboarding skill
+- writes retrieval roots and exclusions to `.vault-config.json` only when a Vault path or `--select` was explicitly supplied
 - configures the bundled `obsidianVaultFilesystem` MCP without a global `codex mcp add` entry
 - registers the plugin in `$HOME/.agents/plugins/marketplace.json`
 
@@ -136,16 +136,17 @@ The manual install section above shows the local-clone marketplace entry inline.
 
 ## MCP behavior
 
-The Vault path is stored locally and the bundled MCP reads it when it starts. In Codex, `configure_vault` renders the setup UI and `choose_vault` opens the native macOS folder picker. `save_vault_scope` validates and persists the selected retrieval scope before the filesystem tools become available.
+The Vault path is stored locally and the bundled MCP reads it when it starts. `get_vault_status` returns `unconfigured`, `ready`, `unavailable`, or `invalid`. `configure_vault` renders the setup UI; `choose_vault` returns a temporary selection; `connect_vault` validates the folder and exclusions, tests read/write access, and saves only after success. A failed attempt leaves an existing connection active.
 
 - `scripts/install-local.sh` installs the local runtime and writes `.vault-path` and `.vault-config.json`
 - `scripts/configure-vault.sh --select` opens the macOS Vault and retrieval-scope setup again
 - `scripts/start-vault-mcp.sh` bootstraps the local runtime and starts the configuration-aware MCP proxy; cached plugin copies use the stable local configuration
-- `scripts/vault-mcp-server.mjs` exposes the setup tools, MCP Apps resource, and validated proxy to the filesystem MCP
-- `ui/vault-setup.html` provides the in-Codex Vault and retrieval-scope form
+- `plugin.json` registers the packaged onboarding skill and the MCP server definition in `mcp.json`; `.codex-plugin/plugin.json` remains synchronized for Codex local plugins
+- `scripts/vault-mcp-server.mjs` exposes the setup tools, structured Codex settings, MCP Apps resource, and validated proxy to the filesystem MCP
+- `ui/vault-setup.html` and `ui/vault-setup.js` provide the accessible in-Codex setup app; `ui/vault-setup.bundle.html` is the locally bundled, offline resource served to Codex
 - the filesystem MCP server is installed locally under `.mcp-server/`
 - startup uses `node` directly instead of `npx`
-- `retrievalRoots` and `excludePaths` are enforced by the MCP proxy for reads, writes, moves, and listings; recursive searches prune excluded folders before reading them. Symlink targets are checked against the same scope
+- Existing `retrievalRoots` and `excludePaths` are preserved; changing Vaults requires a fresh connection confirmation. Relative `excludePaths` are enforced for reads, writes, moves, and listings; recursive searches prune excluded folders before reading them. Symlink targets are checked against the same scope
 
 The MCP is a retrieval transport, not a global memory database. Search results are loaded only for the current task. The agent does not create an automatic Memory note or a vector index.
 
