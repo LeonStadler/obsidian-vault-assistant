@@ -25,6 +25,8 @@ Use the `obsidianVaultFilesystem` MCP server for all vault reads and writes.
 4. Keep edits small and focused.
 5. Preserve the note's current role unless a stronger canonical placement exists.
 
+For a repository-wide project documentation update, use `project-documentation`. It determines the project destination and updates the appropriate separate notes instead of treating the work as generic enrichment.
+
 ## Output
 
 - edited note content or a change plan

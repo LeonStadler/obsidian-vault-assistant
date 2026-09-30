@@ -30,6 +30,8 @@ Use the `obsidianVaultFilesystem` MCP server for all vault file access.
 7. Build a compact context pack: relevant facts, decisions, open questions, and exact source paths. Exclude unrelated content even if it appeared in search.
 8. For direct questions, summarize only the facts that matter, add a short `Sources:` line with the used note paths, and flag uncertainty instead of guessing.
 
+For a repository-wide project context pack or a request to determine where project documentation belongs, use `project-documentation` instead. It adds repository classification and canonical project routing.
+
 ## Output
 
 For questions:
