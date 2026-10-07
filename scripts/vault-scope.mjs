@@ -5,7 +5,7 @@ import path from "node:path";
 
 /** @typedef {{name: string, type: string, children?: TreeNode[]}} TreeNode */
 /** @typedef {{path: string, pattern?: string, excludePatterns?: string[], sortBy?: string}} ListingArgs */
-/** @typedef {(value: string, pattern: string, options: {dot: boolean}) => boolean} Matcher */
+/** @typedef {(value: string, pattern: string, options: {dot: boolean, nocase?: boolean}) => boolean} Matcher */
 
 /** @param {string} parent @param {string} candidate @returns {boolean} */
 function isInside(parent, candidate) {
@@ -115,7 +115,7 @@ export async function scopedListing(scope, name, args, match) {
     function collect(nodes, directory) {
       for (const node of nodes) {
         const candidate = path.join(directory, node.name);
-        if (match(path.relative(root, candidate), args.pattern, { dot: true })) results.push(candidate);
+        if (match(path.relative(root, candidate), args.pattern, { dot: true, nocase: args.caseInsensitive === true })) results.push(candidate);
         if (node.children) collect(node.children, candidate);
       }
     }

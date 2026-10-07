@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "obsidian-vault-assistant",
-  "version": "0.6.0",
-  "description": "Obsidian Vault knowledge tools and native local setup for Codex.",
+  "version": "0.13.0",
+  "description": "Obsidian Vault knowledge tools, native setup, and note handoff to Codex.",
   "author": {
     "name": "Leon Stadler",
     "email": "contact@leon-stadler.com",
@@ -24,7 +24,7 @@
       "interface": {
         "displayName": "Obsidian Vault Assistant",
         "shortDescription": "Obsidian Vault verbinden",
-        "longDescription": "Search, read, and write notes in one local Obsidian Vault. Setup, permissions, and exclusions are managed inside Codex.",
+        "longDescription": "Browse, read, and edit notes in one local Obsidian Vault. Add a whole note or selected passage to the active Codex chat with one explicit action.",
         "developerName": "Leon Stadler",
         "category": "Productivity",
         "capabilities": [

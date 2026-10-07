@@ -102,6 +102,14 @@ def run_smoke(config_dir: Path) -> int:
     start_script = plugin_dir / "scripts/start-vault-mcp.sh"
     vault = config_dir / "vault"
     vault.mkdir()
+    handoff_note = vault / "handoff-note.md"
+    handoff_note.write_text("# Handoff\n\nContext sent only after confirmation.\n", encoding="utf-8")
+    (vault / ".hidden-note.md").write_text("Hidden unless requested.", encoding="utf-8")
+    (vault / ".private-folder").mkdir()
+    (vault / ".private-folder" / "inside.md").write_text("Hidden folder content.", encoding="utf-8")
+    searchable_folder = vault / "Meeting Notes"
+    searchable_folder.mkdir()
+    (searchable_folder / "Quarterly Review.md").write_text("Filename search fixture.", encoding="utf-8")
     archive = vault / "Archive"
     archive.mkdir()
     (archive / "private.md").write_text("EXCLUDED_CONTENT")
@@ -155,6 +163,22 @@ def run_smoke(config_dir: Path) -> int:
         tools = client.request("tools/list")
         tool_names = sorted(tool.get("name", "") for tool in tools.get("tools", []))
         results.append(("tools/list", ", ".join(tool_names)))
+        handoff_tool = next((tool for tool in tools.get("tools", []) if tool.get("name") == "open_vault_context"), None)
+        handoff_entrypoints = handoff_tool.get("_meta", {}).get("openai/ui", {}).get("entrypoints", []) if handoff_tool else []
+        handoff_title = handoff_tool.get("title") if handoff_tool else None
+        handoff_icons = handoff_tool.get("icons", []) if handoff_tool else []
+        handoff_ready = {"type": "global"} in handoff_entrypoints and handoff_title == "Obsidian" and bool(handoff_icons)
+        results.append(("handoff_entrypoint", "ok" if handoff_ready else f"title={handoff_title!r}; entrypoints={handoff_entrypoints!r}"))
+        thread_tool = next((tool for tool in tools.get("tools", []) if tool.get("name") == "open_vault_browser_tab"), None)
+        thread_entrypoints = thread_tool.get("_meta", {}).get("openai/ui", {}).get("entrypoints", []) if thread_tool else []
+        results.append(("vault_browser_thread_entrypoint", "ok" if {"type": "thread"} in thread_entrypoints and thread_tool.get("title") == "Vault durchsuchen" else f"entrypoints={thread_entrypoints!r}"))
+        save_tool = next((tool for tool in tools.get("tools", []) if tool.get("name") == "save_vault_note_from_app"), None)
+        save_visibility = save_tool.get("_meta", {}).get("ui", {}).get("visibility", []) if save_tool else []
+        results.append(("vault_editor_save_app_only", "ok" if save_visibility == ["app"] else f"visibility={save_visibility!r}"))
+        list_tool = next((tool for tool in tools.get("tools", []) if tool.get("name") == "list_vault_directory_for_app"), None)
+        list_visibility = list_tool.get("_meta", {}).get("ui", {}).get("visibility", []) if list_tool else []
+        results.append(("vault_browser_listing_app_only", "ok" if list_visibility == ["app"] else f"visibility={list_visibility!r}"))
+        results.append(("handoff_read_tool", "ok" if "read_note_for_handoff" in tool_names else "missing scoped note reader"))
         capabilities = init.get("capabilities", {})
         settings_capability = capabilities.get("experimental", {}).get("openai/settings", {})
         canonical_settings_capability = capabilities.get("extensions", {}).get("openai/settings", {})
@@ -167,20 +191,63 @@ def run_smoke(config_dir: Path) -> int:
         results.append(("configure_vault_ui", setup_uri if setup_uri else "missing UI resource metadata"))
 
         resources = client.request("resources/list").get("resources", [])
-        resource_uri = next((item.get("uri", "") for item in resources if item.get("uri") == "ui://obsidian-vault-assistant/vault-setup-v1.html"), "")
+        resource_uri = next((item.get("uri", "") for item in resources if item.get("uri") == "ui://obsidian-vault-assistant/vault-setup-v7.html"), "")
         resource = client.request("resources/read", {"uri": resource_uri}) if resource_uri else {}
         resource_content = resource.get("contents", [{}])[0]
         resource_html = resource_content.get("text", "")
         resource_ok = resource_content.get("mimeType") == "text/html;profile=mcp-app" and "Obsidian-Vault verbinden" in resource_html and "__VAULT_SETUP_BUNDLE__" not in resource_html and "choose_vault" in resource_html
         results.append(("vault_setup_resource", "ok" if resource_ok else f"mime={resource_content.get('mimeType')}; title={'Obsidian-Vault verbinden' in resource_html}; marker={'__VAULT_SETUP_BUNDLE__' in resource_html}; app={'choose_vault' in resource_html}; length={len(resource_html)}"))
+        handoff_ui_ok = all(value in resource_html for value in ["handoff-content", "send-handoff"])
+        results.append(("handoff_preview_ui", "ok" if handoff_ui_ok else "missing preview or send control"))
+        browser_ui_ok = all(value in resource_html for value in ['id="browser"', 'id="browser-layout"', 'id="browser-list"', 'id="reader-content"', 'name:"list_vault_directory_for_app"', 'name:"search_vault_entries_for_app"', 'name:"read_text_file"', 'id="vault-search"', 'id="save-note"', 'id="add-note-context"', 'id="browser-settings"', 'id="change-vault"', 'id="settings-show-hidden"', 'id="settings-allow-editing"', 'name:"save_vault_note_from_app"']) and 'id="show-hidden"' not in resource_html
+        results.append(("vault_browser_ui", "ok" if browser_ui_ok else "missing folder browser, note editor, or chat-context action"))
+        markdown_ui_ok = all(value in resource_html for value in ['id="reader-mode-tabs"', 'id="edit-mode"', 'id="preview-mode"', 'id="markdown-preview"', 'Markdown bearbeiten', 'Vorschau'])
+        results.append(("vault_markdown_editor_preview_ui", "ok" if markdown_ui_ok else "missing Markdown editor or rendered preview controls"))
 
         config_state = client.request("tools/call", {"name": "configure_vault", "arguments": {}}).get("structuredContent", {})
         results.append(("configure_vault", "configured" if config_state.get("configured") else "not configured"))
+        browser_state = client.request("tools/call", {"name": "open_vault_context", "arguments": {}}).get("structuredContent", {})
+        results.append(("vault_browser_mode", "ok" if browser_state.get("appMode") == "browser" else str(browser_state.get("appMode"))))
         status_state = client.request("tools/call", {"name": "get_vault_status", "arguments": {}}).get("structuredContent", {})
         results.append(("ready_vault_status", "ok" if status_state.get("status") == "ready" else str(status_state.get("status"))))
+        browser_listing = extract_text(client.request("tools/call", {"name": "list_directory", "arguments": {"path": str(vault)}}))
+        browser_list_ok = "handoff-note.md" in browser_listing and "Archive" not in browser_listing
+        results.append(("vault_browser_lists_scoped_notes", "ok" if browser_list_ok else "failed to list accessible Vault entries"))
+        visible_browser_listing = extract_text(client.request("tools/call", {"name": "list_vault_directory_for_app", "arguments": {"path": str(vault)}}))
+        results.append(("vault_browser_hides_dotfiles_by_default", "ok" if "handoff-note.md" in visible_browser_listing and ".hidden-note.md" not in visible_browser_listing and ".private-folder" not in visible_browser_listing else visible_browser_listing[:160]))
+        expanded_browser_listing = extract_text(client.request("tools/call", {"name": "list_vault_directory_for_app", "arguments": {"path": str(vault), "showHidden": True}}))
+        results.append(("vault_browser_shows_dotfiles_on_request", "ok" if ".hidden-note.md" in expanded_browser_listing and ".private-folder" in expanded_browser_listing else expanded_browser_listing[:160]))
+        filename_search = client.request("tools/call", {"name": "search_vault_entries_for_app", "arguments": {"query": "quarterly review"}}).get("structuredContent", {}).get("entries", [])
+        results.append(("vault_search_finds_nested_filename_case_insensitive", "ok" if any(entry.get("path") == "Meeting Notes/Quarterly Review.md" and not entry.get("directory") for entry in filename_search) else repr(filename_search)))
+        folder_search = client.request("tools/call", {"name": "search_vault_entries_for_app", "arguments": {"query": "meeting notes"}}).get("structuredContent", {}).get("entries", [])
+        results.append(("vault_search_finds_folder_name", "ok" if any(entry.get("path") == "Meeting Notes" and entry.get("directory") for entry in folder_search) else repr(folder_search)))
+        hidden_search = client.request("tools/call", {"name": "search_vault_entries_for_app", "arguments": {"query": "hidden-note"}}).get("structuredContent", {}).get("entries", [])
+        results.append(("vault_search_hides_dotfiles_by_default", "ok" if not any(entry.get("name") == ".hidden-note.md" for entry in hidden_search) else repr(hidden_search)))
+        excluded_search = client.request("tools/call", {"name": "search_vault_entries_for_app", "arguments": {"query": "private"}}).get("structuredContent", {}).get("entries", [])
+        results.append(("vault_search_respects_exclusions", "ok" if not any("Archive" in entry.get("path", "") or "archive-alias" in entry.get("path", "") or "outside-alias" in entry.get("path", "") for entry in excluded_search) else repr(excluded_search)))
+        browser_note = extract_text(client.request("tools/call", {"name": "read_text_file", "arguments": {"path": str(handoff_note)}}))
+        results.append(("vault_browser_reads_note", "ok" if "Context sent only after confirmation." in browser_note else "failed to read accessible Markdown note"))
+        handoff_content = client.request("tools/call", {"name": "read_note_for_handoff", "arguments": {"path": "handoff-note.md"}})
+        handoff_structured = handoff_content.get("structuredContent", {})
+        results.append(("handoff_read_note", "ok" if handoff_structured.get("content", "").endswith("Context sent only after confirmation.\n") else "failed"))
+        excluded_handoff = client.request("tools/call", {"name": "read_note_for_handoff", "arguments": {"path": "Archive/private.md"}})
+        results.append(("handoff_exclusion", "ok" if excluded_handoff.get("isError") and "Access denied" in extract_text(excluded_handoff) else "failed"))
+        symlink_handoff = client.request("tools/call", {"name": "read_note_for_handoff", "arguments": {"path": "outside-alias/private.md"}})
+        results.append(("handoff_symlink_scope", "ok" if symlink_handoff.get("isError") and "Access denied" in extract_text(symlink_handoff) else "failed"))
+        original_note = handoff_note.read_text(encoding="utf-8")
+        edited_note = "# Edited in app\n\nSaved through the scoped Vault browser.\n"
+        saved_note = client.request("tools/call", {"name": "save_vault_note_from_app", "arguments": {"path": "handoff-note.md", "expectedContent": original_note, "content": edited_note}})
+        results.append(("vault_editor_save", "ok" if not saved_note.get("isError") and handoff_note.read_text(encoding="utf-8") == edited_note else extract_text(saved_note)[:120]))
+        stale_save = client.request("tools/call", {"name": "save_vault_note_from_app", "arguments": {"path": "handoff-note.md", "expectedContent": original_note, "content": "STALE OVERWRITE"}})
+        results.append(("vault_editor_conflict_check", "ok" if stale_save.get("isError") and "seit dem Öffnen geändert" in extract_text(stale_save) and handoff_note.read_text(encoding="utf-8") == edited_note else "stale save was not blocked"))
+        excluded_save = client.request("tools/call", {"name": "save_vault_note_from_app", "arguments": {"path": "Archive/private.md", "expectedContent": "EXCLUDED_CONTENT", "content": "blocked"}})
+        results.append(("vault_editor_exclusion", "ok" if excluded_save.get("isError") and "Access denied" in extract_text(excluded_save) else "excluded note was editable"))
+        symlink_save = client.request("tools/call", {"name": "save_vault_note_from_app", "arguments": {"path": "outside-alias/private.md", "expectedContent": "OUTSIDE_CONTENT", "content": "blocked"}})
+        results.append(("vault_editor_symlink_scope", "ok" if symlink_save.get("isError") and "Access denied" in extract_text(symlink_save) else "outside symlink was editable"))
         settings = client.request("tools/call", {"name": "settings.read", "arguments": {}}).get("structuredContent", {})
         settings_layout = settings.get("layout", [{}])[0].get("items", [])
-        results.append(("settings_read", "ok" if settings.get("values", {}).get("excludePaths") == "Archive" and any(item.get("kind") == "tool" and item.get("tool") == "configure_vault" for item in settings_layout) else "failed"))
+        settings_values = settings.get("values", {})
+        results.append(("settings_read", "ok" if settings_values.get("excludePaths") == "Archive" and settings_values.get("showHiddenFiles") is False and settings_values.get("allowNoteEditing") is True and any(item.get("kind") == "tool" and item.get("tool") == "configure_vault" for item in settings_layout) else f"failed: {settings_values!r}"))
 
         allowed = extract_text(client.request("tools/call", {"name": "list_allowed_directories", "arguments": {}}))
         vault_root = allowed.splitlines()[-1].strip()
@@ -351,6 +418,16 @@ def run_smoke(config_dir: Path) -> int:
         results.append(("preserve_connection_after_failed_connect", "ok" if invalid_connect.get("isError") and state.get("status") == "ready" and state.get("excludePaths") == ["Archive"] else "failed"))
         settings_updated = client.request("tools/call", {"name": "settings.update", "arguments": {"set": {"excludePaths": "Archive\n"}}})
         results.append(("settings_update", "ok" if settings_updated.get("structuredContent", {}).get("values", {}).get("excludePaths") == "Archive" else extract_text(settings_updated) or "failed"))
+        hidden_preference = client.request("tools/call", {"name": "settings.update", "arguments": {"set": {"showHiddenFiles": True}}})
+        default_hidden_listing = extract_text(client.request("tools/call", {"name": "list_vault_directory_for_app", "arguments": {"path": str(vault)}}))
+        hidden_preference_search = client.request("tools/call", {"name": "search_vault_entries_for_app", "arguments": {"query": "hidden-note"}}).get("structuredContent", {}).get("entries", [])
+        results.append(("settings_show_hidden_files_persisted", "ok" if hidden_preference.get("structuredContent", {}).get("values", {}).get("showHiddenFiles") is True and ".hidden-note.md" in default_hidden_listing and any(entry.get("name") == ".hidden-note.md" for entry in hidden_preference_search) else "failed"))
+        editing_disabled = client.request("tools/call", {"name": "settings.update", "arguments": {"set": {"allowNoteEditing": False}}})
+        denied_app_save = client.request("tools/call", {"name": "save_vault_note_from_app", "arguments": {"path": "handoff-note.md", "expectedContent": handoff_note.read_text(encoding="utf-8"), "content": "blocked"}})
+        denied_agent_write = client.request("tools/call", {"name": "write_file", "arguments": {"path": str(handoff_note), "content": "blocked"}})
+        results.append(("settings_disable_all_vault_writes", "ok" if editing_disabled.get("structuredContent", {}).get("values", {}).get("allowNoteEditing") is False and denied_app_save.get("isError") and denied_agent_write.get("isError") and "gesperrt" in extract_text(denied_app_save) and "gesperrt" in extract_text(denied_agent_write) else "failed"))
+        editing_enabled = client.request("tools/call", {"name": "settings.update", "arguments": {"set": {"allowNoteEditing": True}}})
+        results.append(("settings_restore_vault_writes", "ok" if editing_enabled.get("structuredContent", {}).get("values", {}).get("allowNoteEditing") is True else "failed"))
         saved = client.request("tools/call", {"name": "save_vault_scope", "arguments": {"retrievalRoots": [f" {test_dir_name} "], "excludePaths": [" Archive "]}})
         results.append(("save_trimmed_scope", "ok" if saved.get("structuredContent", {}).get("retrievalRoots") == [test_dir_name] else "failed"))
         outside_root = client.request("tools/call", {"name": "list_directory", "arguments": {"path": str(vault)}})
@@ -364,9 +441,11 @@ def run_smoke(config_dir: Path) -> int:
             fresh_client.request("initialize", {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "fresh-vault-smoke", "version": "1.0.0"}})
             fresh_client.notify("notifications/initialized")
             fresh_tools = fresh_client.request("tools/list").get("tools", [])
-            results.append(("unconfigured_setup_tools", "ok" if {"configure_vault", "choose_vault", "connect_vault", "get_vault_status", "settings.read", "settings.update"}.issubset({tool["name"] for tool in fresh_tools}) else "failed"))
+            results.append(("unconfigured_setup_tools", "ok" if {"configure_vault", "open_vault_context", "open_vault_browser_tab", "save_vault_note_from_app", "list_vault_directory_for_app", "search_vault_entries_for_app", "read_note_for_handoff", "choose_vault", "connect_vault", "get_vault_status", "settings.read", "settings.update"}.issubset({tool["name"] for tool in fresh_tools}) else "failed"))
             fresh_state = fresh_client.request("tools/call", {"name": "configure_vault", "arguments": {}})
             results.append(("unconfigured_setup_state", "ok" if fresh_state.get("structuredContent", {}).get("configured") is False else "failed"))
+            handoff_state = fresh_client.request("tools/call", {"name": "open_vault_context", "arguments": {}}).get("structuredContent", {})
+            results.append(("unconfigured_handoff_requires_setup", "ok" if handoff_state.get("handoffUnavailable") and handoff_state.get("status") == "unconfigured" else "failed"))
             fresh_status = fresh_client.request("tools/call", {"name": "get_vault_status", "arguments": {}}).get("structuredContent", {})
             results.append(("unconfigured_status", "ok" if fresh_status.get("status") == "unconfigured" and fresh_status.get("excludePaths") == [".obsidian", ".git", ".trash"] else "failed"))
         finally:
@@ -413,7 +492,8 @@ def run_smoke(config_dir: Path) -> int:
             results.append(("failed_connect_preserves_connection", "ok" if failed_connect.get("isError") and after_failed_connect.get("vaultPath") == old_state.get("vaultPath") else "failed"))
 
             connected = client.request("tools/call", {"name": "connect_vault", "arguments": {"selectionId": draft["selection"]["selectionId"], "excludePaths": [".obsidian", ".git", ".trash"]}}).get("structuredContent", {})
-            results.append(("connect_selected_vault", "ok" if connected.get("status") == "ready" and connected.get("vaultPath") == str(selected_vault) else "failed"))
+            preferences_preserved = connected.get("appPreferences", {}).get("showHiddenFiles") is True and connected.get("appPreferences", {}).get("allowNoteEditing") is True
+            results.append(("connect_selected_vault", "ok" if connected.get("status") == "ready" and connected.get("vaultPath") == str(selected_vault) and preferences_preserved else "failed to connect or preserve app preferences"))
             selected_listing = extract_text(client.request("tools/call", {"name": "list_directory", "arguments": {"path": str(selected_vault)}}))
             results.append(("default_exclusions_keep_archive", "ok" if "Archive" in selected_listing and ".trash" not in selected_listing and ".obsidian" not in selected_listing else "failed"))
             selected_note = selected_vault / "connected-note.md"

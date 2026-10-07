@@ -38,9 +38,14 @@ const {
   ReadResourceRequestSchema,
 } = await import(pathToFileURL(path.join(sdkBase, "types.js")).href);
 
-const UI_RESOURCE_URI = "ui://obsidian-vault-assistant/vault-setup-v1.html";
+const UI_RESOURCE_URI = "ui://obsidian-vault-assistant/vault-setup-v7.html";
+const APP_ICON = `data:image/svg+xml;base64,${Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"><path d="M5 3.5h10a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 15V5A1.5 1.5 0 0 1 5 3.5Z" stroke="currentColor" stroke-width="1.33"/><path d="M6.5 7h7m-7 3h7m-7 3h4" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"/></svg>').toString("base64")}`;
+const MAX_HANDOFF_NOTE_CHARS = 24000;
+const MAX_EDITABLE_NOTE_CHARS = 200000;
 const { minimatch } = await import(pathToFileURL(path.join(nodeModulesDir, "minimatch", "dist", "esm", "index.js")).href);
 const DEFAULT_EXCLUDES = [".obsidian", ".git", ".trash"];
+const DEFAULT_APP_PREFERENCES = { showHiddenFiles: false, allowNoteEditing: true };
+const WRITE_TOOLS = new Set(["write_file", "edit_file", "create_directory", "move_file", "delete_file"]);
 const executeFile = promisify(execFile);
 const version = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8")).version;
 const selections = new Map();
@@ -132,15 +137,46 @@ async function validateConfiguration(candidateVaultPath, candidateConfig) {
 }
 
 async function saveConfiguration(validated) {
+  let savedPreferences = DEFAULT_APP_PREFERENCES;
+  try {
+    const savedConfig = JSON.parse(await readFile(configPath(".vault-config.json"), "utf8"));
+    savedPreferences = normalizeAppPreferences(savedConfig?.appPreferences);
+  } catch (error) {
+    if (error.code !== "ENOENT" && !(error instanceof SyntaxError)) throw error;
+    // Reconnecting is also the repair path for a missing or malformed saved config.
+  }
+  const appPreferences = savedPreferences;
   await mkdir(configDir, { recursive: true });
   const temporary = configPath(`.vault-config-${randomUUID()}.tmp`);
   try {
-    await writeFile(temporary, `${JSON.stringify({ vaultPath: validated.vaultPath, ...validated.config }, null, 2)}\n`, { mode: 0o600, flag: "wx" });
+    await writeFile(temporary, `${JSON.stringify({ vaultPath: validated.vaultPath, ...validated.config, appPreferences }, null, 2)}\n`, { mode: 0o600, flag: "wx" });
     await rename(temporary, configPath(".vault-config.json"));
   } finally {
     try { await unlink(temporary); }
     catch (error) { if (error.code !== "ENOENT") throw error; }
   }
+}
+
+function normalizeAppPreferences(candidate) {
+  return {
+    showHiddenFiles: typeof candidate?.showHiddenFiles === "boolean" ? candidate.showHiddenFiles : DEFAULT_APP_PREFERENCES.showHiddenFiles,
+    allowNoteEditing: typeof candidate?.allowNoteEditing === "boolean" ? candidate.allowNoteEditing : DEFAULT_APP_PREFERENCES.allowNoteEditing,
+  };
+}
+
+async function saveAppPreferences(preferences) {
+  const current = await loadConfig();
+  if (!current) throw new Error("Bitte zuerst einen Vault verbinden.");
+  const appPreferences = normalizeAppPreferences({ ...current.config.appPreferences, ...preferences });
+  const temporary = configPath(`.vault-config-${randomUUID()}.tmp`);
+  try {
+    await writeFile(temporary, `${JSON.stringify({ ...current.config, vaultPath: current.vaultPath, appPreferences }, null, 2)}\n`, { mode: 0o600, flag: "wx" });
+    await rename(temporary, configPath(".vault-config.json"));
+  } finally {
+    try { await unlink(temporary); }
+    catch (error) { if (error.code !== "ENOENT") throw error; }
+  }
+  return appPreferences;
 }
 
 async function getState() {
@@ -154,7 +190,8 @@ async function getState() {
     const client = await ensureFilesystemClient();
     if (!client) return { ...empty, status: "unavailable", message: "Der lokale Dateiserver ist nicht verfügbar. Bitte die Verbindung erneut prüfen." };
     await client.listTools();
-    return { configured: true, status: "ready", message: "Vault verbunden – bereit zum Lesen und Schreiben", vaultPath: validated.vaultPath, ...validated.config };
+    const appPreferences = normalizeAppPreferences(localConfig.config.appPreferences);
+    return { configured: true, status: "ready", message: appPreferences.allowNoteEditing ? "Vault verbunden – bereit zum Lesen und Schreiben" : "Vault verbunden – Schreibzugriff ist in den Einstellungen gesperrt", vaultPath: validated.vaultPath, ...validated.config, appPreferences };
   } catch (error) {
     const unavailable = ["ENOENT", "EACCES", "EPERM", "ENOTDIR", "ECONNRESET", "ETIMEDOUT", "ERR_MODULE_NOT_FOUND"].includes(error.code);
     const retrievalRoots = Array.isArray(localConfig?.config?.retrievalRoots) && localConfig.config.retrievalRoots.every((value) => typeof value === "string")
@@ -256,9 +293,9 @@ const setupTools = [
   },
   {
     name: "settings.update", title: "Vault-Einstellungen aktualisieren",
-    description: "Update only the exclusion paths of the currently connected Vault.",
-    inputSchema: { type: "object", properties: { set: { type: "object", properties: { excludePaths: { type: "string" } }, required: ["excludePaths"], additionalProperties: false } }, required: ["set"], additionalProperties: false },
-    outputSchema: { type: "object", properties: { values: { type: "object", properties: { excludePaths: { type: "string" } }, required: ["excludePaths"], additionalProperties: false } }, required: ["values"], additionalProperties: false },
+    description: "Update Vault exclusions and app preferences for hidden files and note editing.",
+    inputSchema: { type: "object", properties: { set: { type: "object", properties: { excludePaths: { type: "string" }, showHiddenFiles: { type: "boolean" }, allowNoteEditing: { type: "boolean" } }, additionalProperties: false, minProperties: 1 } }, required: ["set"], additionalProperties: false },
+    outputSchema: { type: "object", properties: { values: { type: "object" } }, required: ["values"], additionalProperties: false },
     annotations: { readOnlyHint: false, openWorldHint: false },
   },
   {
@@ -284,6 +321,81 @@ const setupTools = [
       ui: { resourceUri: UI_RESOURCE_URI, prefersBorder: true },
       "openai/outputTemplate": UI_RESOURCE_URI,
     },
+  },
+  {
+    name: "open_vault_context",
+    title: "Obsidian",
+    description: "Browse, edit, and read Markdown notes in the connected Obsidian Vault, or explicitly add a note to the active chat.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false },
+    _meta: {
+      ui: { resourceUri: UI_RESOURCE_URI, prefersBorder: true },
+      "openai/ui": { entrypoints: [{ type: "global" }] },
+      "openai/outputTemplate": UI_RESOURCE_URI,
+    },
+    icons: [{ src: APP_ICON, mimeType: "image/svg+xml", sizes: ["20x20"] }],
+  },
+  {
+    name: "open_vault_browser_tab",
+    title: "Vault durchsuchen",
+    description: "Open the Obsidian Vault browser as a tab in this Codex chat.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false },
+    _meta: {
+      ui: { resourceUri: UI_RESOURCE_URI, prefersBorder: true },
+      "openai/ui": { entrypoints: [{ type: "thread" }] },
+      "openai/outputTemplate": UI_RESOURCE_URI,
+    },
+    icons: [{ src: APP_ICON, mimeType: "image/svg+xml", sizes: ["20x20"] }],
+  },
+  {
+    name: "save_vault_note_from_app",
+    title: "Vault-Notiz speichern",
+    description: "Save an edited Markdown note from the Obsidian browser only if its current content still matches the version that was opened.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        path: { type: "string", minLength: 1, maxLength: 2048 },
+        expectedContent: { type: "string", maxLength: MAX_EDITABLE_NOTE_CHARS },
+        content: { type: "string", maxLength: MAX_EDITABLE_NOTE_CHARS },
+      },
+      required: ["path", "expectedContent", "content"],
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: false },
+    _meta: { ui: { visibility: ["app"] } },
+  },
+  {
+    name: "list_vault_directory_for_app",
+    title: "Vault-Ordner anzeigen",
+    description: "List a connected Vault folder for the browser, hiding dotfiles by default while preserving all saved Vault scope restrictions.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        path: { type: "string", minLength: 1, maxLength: 4096 },
+        showHidden: { type: "boolean" },
+      },
+      required: ["path"],
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: true, openWorldHint: false },
+    _meta: { ui: { visibility: ["app"] } },
+  },
+  {
+    name: "search_vault_entries_for_app",
+    title: "Vault-Dateien und Ordner suchen",
+    description: "Search file and folder names within the configured retrieval roots while enforcing exclusions, hidden-file preference, and symlink protections.",
+    inputSchema: { type: "object", properties: { query: { type: "string", minLength: 1, maxLength: 256 } }, required: ["query"], additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false },
+    _meta: { ui: { visibility: ["app"] } },
+  },
+  {
+    name: "read_note_for_handoff",
+    title: "Vault-Notiz für Chat öffnen",
+    description: "Read one Markdown note within the configured Vault scope for an explicit user handoff. Enforced Vault exclusions and symlink protections apply.",
+    inputSchema: { type: "object", properties: { path: { type: "string", minLength: 1, maxLength: 2048 } }, required: ["path"], additionalProperties: false },
+    annotations: { readOnlyHint: true, openWorldHint: false },
+    _meta: { ui: { visibility: ["app"] } },
   },
   {
     name: "choose_vault",
@@ -318,7 +430,7 @@ const server = new Server(
       experimental: { "openai/settings": { readTool: "settings.read", updateTool: "settings.update" } },
     },
     instructions:
-      "This is the obsidianVaultFilesystem MCP for Obsidian Vault Assistant. First call get_vault_status. If ready, use Vault tools directly; otherwise call configure_vault to render the setup UI; do not use Md.obsidian Integration, Computer Use, or open Obsidian. The UI calls choose_vault for a draft, then connect_vault to confirm it. Never reselect a valid Vault unless requested. Retrieval stays local and temporary: use only saved retrieval roots, never create a global memory database or vector index.",
+      "This is the obsidianVaultFilesystem MCP for Obsidian Vault Assistant. First call get_vault_status. If ready, use Vault tools directly; otherwise call configure_vault to render the setup UI; do not use Md.obsidian Integration, Computer Use, or open Obsidian. The global open_vault_context app browses allowed Vault folders, edits Markdown notes with conflict checks, and lets the user explicitly add note content to the active chat. open_vault_browser_tab opens the same browser as a thread tab; configure_vault opens connection settings. The UI calls choose_vault for a draft, then connect_vault to confirm it. Never reselect a valid Vault unless requested. For an explicit Obsidian handoff, open_vault_context also accepts a deep-linked note path or selected text; read_note_for_handoff enforces the saved Vault scope and exclusions. Do not send handoff content until the user clicks the send action. Retrieval stays local and temporary: use only saved retrieval roots, never create a global memory database or vector index.",
   },
 );
 
@@ -339,27 +451,153 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     if (name === "settings.read") {
       const state = await getState();
+      const preferences = normalizeAppPreferences(state.appPreferences);
       return { content: [], structuredContent: {
-        schema: { type: "object", properties: { excludePaths: { type: "string", title: "Ausgeschlossene Vault-Pfade", description: "Relative Datei- oder Ordnerpfade, ein Eintrag pro Zeile." } }, required: ["excludePaths"] },
-        layout: [{ kind: "group", title: "Obsidian Vault", items: [{ kind: "property", property: "excludePaths" }, { kind: "tool", tool: "configure_vault", title: "Vault verwalten", description: "Vault-Ordner wechseln und Verbindung prüfen." }] }],
-        values: { excludePaths: (state.excludePaths || DEFAULT_EXCLUDES).join("\n") },
+        schema: { type: "object", properties: { excludePaths: { type: "string", title: "Ausgeschlossene Vault-Pfade", description: "Relative Datei- oder Ordnerpfade, ein Eintrag pro Zeile." }, showHiddenFiles: { type: "boolean", title: "Punktdateien anzeigen" }, allowNoteEditing: { type: "boolean", title: "Notizen bearbeiten erlauben" } }, required: ["excludePaths", "showHiddenFiles", "allowNoteEditing"] },
+        layout: [{ kind: "group", title: "Obsidian Vault", items: [{ kind: "property", property: "excludePaths" }, { kind: "property", property: "showHiddenFiles" }, { kind: "property", property: "allowNoteEditing" }, { kind: "tool", tool: "configure_vault", title: "Vault verwalten", description: "Vault-Ordner wechseln und Verbindung prüfen." }] }],
+        values: { excludePaths: (state.excludePaths || DEFAULT_EXCLUDES).join("\n"), ...preferences },
       } };
     }
 
     if (name === "settings.update") {
       const current = await loadConfig();
       if (!current) throw new Error("Bitte zuerst einen Vault verbinden.");
-      const excludePaths = args.set?.excludePaths;
-      if (typeof excludePaths !== "string") throw new Error("Die Ausschlüsse müssen als relative Pfade, je einer pro Zeile, eingegeben werden.");
-      await commitConnection(current.vaultPath, {
-        retrievalRoots: current.config.retrievalRoots,
-        excludePaths: excludePaths.split("\n").map((value) => value.trim()).filter(Boolean),
-      });
+      const settings = args.set || {};
+      const preferences = {};
+      for (const preferenceName of ["showHiddenFiles", "allowNoteEditing"]) {
+        if (settings[preferenceName] !== undefined) {
+          if (typeof settings[preferenceName] !== "boolean") throw new Error(`${preferenceName} muss ein boolescher Wert sein.`);
+          preferences[preferenceName] = settings[preferenceName];
+        }
+      }
+      if (settings.excludePaths !== undefined) {
+        if (typeof settings.excludePaths !== "string") throw new Error("Die Ausschlüsse müssen als relative Pfade, je einer pro Zeile, eingegeben werden.");
+        await commitConnection(current.vaultPath, {
+          retrievalRoots: current.config.retrievalRoots,
+          excludePaths: settings.excludePaths.split("\n").map((value) => value.trim()).filter(Boolean),
+        });
+      }
+      const appPreferences = Object.keys(preferences).length ? await saveAppPreferences(preferences) : normalizeAppPreferences(current.config.appPreferences);
       const state = await getState();
-      return { content: [], structuredContent: { values: { excludePaths: state.excludePaths.join("\n") } } };
+      return { content: [], structuredContent: { values: { excludePaths: state.excludePaths.join("\n"), ...appPreferences } } };
     }
 
-    if (name === "configure_vault" || name === "get_vault_status") return resultFor(await getState());
+    if (name === "configure_vault" || name === "open_vault_context" || name === "open_vault_browser_tab" || name === "get_vault_status") {
+      const state = await getState();
+      if ((name === "open_vault_context" || name === "open_vault_browser_tab") && state.status !== "ready") {
+        return resultFor({ ...state, appMode: "browser", handoffUnavailable: true, message: `${state.message} Verbinde zuerst einen Vault, bevor du den Vault durchsuchen kannst.` });
+      }
+      return name === "open_vault_context" || name === "open_vault_browser_tab" ? resultFor({ ...state, appMode: "browser" }) : resultFor(state);
+    }
+
+    if (name === "save_vault_note_from_app") {
+      const current = await loadConfig();
+      if (!current) throw new Error("Bitte zuerst einen Vault verbinden.");
+      if (!normalizeAppPreferences(current.config.appPreferences).allowNoteEditing) throw new Error("Das Bearbeiten von Vault-Notizen ist in den Obsidian-Einstellungen gesperrt.");
+      const { path: relativePath, expectedContent, content } = args;
+      if (typeof relativePath !== "string" || !relativePath.trim() || path.isAbsolute(relativePath) || relativePath.includes("\\") || relativePath.split("/").some((part) => part === ".." || part === "")) {
+        throw new Error("Bitte einen gültigen relativen Notizpfad innerhalb des verbundenen Vaults angeben.");
+      }
+      if (path.extname(relativePath).toLowerCase() !== ".md") throw new Error("In dieser Ansicht können nur Markdown-Notizen mit der Endung .md bearbeitet werden.");
+      if (typeof expectedContent !== "string" || typeof content !== "string") throw new Error("Der Notizinhalt konnte nicht verarbeitet werden.");
+      if (expectedContent.length > MAX_EDITABLE_NOTE_CHARS || content.length > MAX_EDITABLE_NOTE_CHARS) throw new Error(`Notizen können hier bis maximal ${MAX_EDITABLE_NOTE_CHARS.toLocaleString("de-AT")} Zeichen bearbeitet werden.`);
+      const scope = await validateConfiguration(current.vaultPath, current.config);
+      const absolutePath = await validateScopedPath(scope, path.resolve(scope.vaultPath, relativePath));
+      const fileStats = await stat(absolutePath);
+      if (!fileStats.isFile()) throw new Error("Der ausgewählte Pfad ist keine Notizdatei.");
+      const actualContent = await readFile(absolutePath, "utf8");
+      if (actualContent !== expectedContent) throw new Error("Diese Notiz wurde seit dem Öffnen geändert. Dein Entwurf ist noch vorhanden; lade die aktuelle Version neu, bevor du weiter speicherst.");
+      const temporary = path.join(path.dirname(absolutePath), `.codex-note-${randomUUID()}.tmp`);
+      try {
+        await writeFile(temporary, content, { mode: fileStats.mode, flag: "wx" });
+        await rename(temporary, absolutePath);
+      } finally {
+        try { await unlink(temporary); }
+        catch (error) { if (error.code !== "ENOENT") throw error; }
+      }
+      return { content: [{ type: "text", text: `Notiz gespeichert: ${relativePath}` }], structuredContent: { path: relativePath, content } };
+    }
+
+    if (name === "list_vault_directory_for_app") {
+      const current = await loadConfig();
+      if (!current) throw new Error("Bitte zuerst einen Vault verbinden.");
+      if (typeof args.path !== "string" || !path.isAbsolute(args.path)) throw new Error("Bitte einen absoluten Ordnerpfad innerhalb des verbundenen Vaults angeben.");
+      if (args.showHidden !== undefined && typeof args.showHidden !== "boolean") throw new Error("showHidden muss ein boolescher Wert sein.");
+      const scope = await validateConfiguration(current.vaultPath, current.config);
+      const directory = await validateScopedPath(scope, args.path);
+      const fileStats = await stat(directory);
+      if (!fileStats.isDirectory()) throw new Error("Der ausgewählte Pfad ist kein Ordner.");
+      const result = await scopedListing(scope, "list_directory", { path: directory }, minimatch);
+      if (!result) throw new Error("Der Ordner konnte nicht geladen werden.");
+      const showHiddenFiles = typeof args.showHidden === "boolean" ? args.showHidden : normalizeAppPreferences(current.config.appPreferences).showHiddenFiles;
+      if (showHiddenFiles) return result;
+      const lines = result.content?.filter((item) => item.type === "text").map((item) => item.text || "").join("\n").split("\n") || [];
+      const visibleLines = lines.filter((line) => {
+        const match = line.match(/^\[(?:DIR|FILE)\] (.*)$/u);
+        return !match || !match[1].startsWith(".");
+      });
+      const content = visibleLines.join("\n");
+      return { content: [{ type: "text", text: content }], structuredContent: { content } };
+    }
+
+    if (name === "search_vault_entries_for_app") {
+      const current = await loadConfig();
+      if (!current) throw new Error("Bitte zuerst einen Vault verbinden.");
+      if (typeof args.query !== "string" || !args.query.trim() || args.query.length > 256) throw new Error("Bitte einen Suchbegriff mit 1 bis 256 Zeichen eingeben.");
+      const query = args.query.trim();
+      const scope = await validateConfiguration(current.vaultPath, current.config);
+      const preferences = normalizeAppPreferences(current.config.appPreferences);
+      const escapedQuery = minimatch.escape(query);
+      const pattern = `**/*${escapedQuery}*`;
+      const excludePatterns = preferences.showHiddenFiles ? [] : [".*", "**/.*"];
+      const matches = [];
+      for (const root of scope.resolvedRoots) {
+        const result = await scopedListing(scope, "search_files", {
+          path: root,
+          pattern,
+          caseInsensitive: true,
+          excludePatterns,
+        }, minimatch);
+        const text = result?.content?.filter((item) => item.type === "text").map((item) => item.text || "").join("\n") || "";
+        if (text && text !== "No matches found") matches.push(...text.split("\n").filter(Boolean));
+      }
+      const uniqueMatches = [...new Set(matches)].sort((left, right) => left.localeCompare(right));
+      const truncated = uniqueMatches.length > 100;
+      const entries = [];
+      for (const absolutePath of uniqueMatches.slice(0, 100)) {
+        const validatedPath = await validateScopedPath(scope, absolutePath);
+        const entryStats = await stat(validatedPath);
+        entries.push({
+          path: path.relative(scope.vaultPath, absolutePath).split(path.sep).join("/"),
+          name: path.basename(absolutePath),
+          directory: entryStats.isDirectory(),
+        });
+      }
+      return { content: [{ type: "text", text: `${entries.length} Treffer${truncated ? " (auf 100 begrenzt)" : ""}` }], structuredContent: { entries, truncated } };
+    }
+
+    if (name === "read_note_for_handoff") {
+      const state = await getState();
+      if (state.status !== "ready") throw new Error(`${state.message} Verbinde zuerst einen Vault.`);
+      const relativePath = args.path;
+      if (typeof relativePath !== "string" || !relativePath.trim() || path.isAbsolute(relativePath) || relativePath.includes("\\") || relativePath.split("/").some((part) => part === ".." || part === "")) {
+        throw new Error("Bitte einen gültigen relativen Notizpfad innerhalb des verbundenen Vaults angeben.");
+      }
+      if (path.extname(relativePath).toLowerCase() !== ".md") throw new Error("Für die Übergabe werden nur Markdown-Notizen mit der Endung .md unterstützt.");
+      const current = await loadConfig();
+      const scope = await validateConfiguration(current.vaultPath, current.config);
+      const absolutePath = await validateScopedPath(scope, path.resolve(scope.vaultPath, relativePath));
+      const fileStats = await stat(absolutePath);
+      if (!fileStats.isFile()) throw new Error("Der ausgewählte Pfad ist keine Notizdatei.");
+      if (fileStats.size > MAX_HANDOFF_NOTE_CHARS * 4) throw new Error(`Die Notiz ist zu groß für die direkte Übergabe. Bitte sende eine kürzere Auswahl (maximal ${MAX_HANDOFF_NOTE_CHARS} Zeichen).`);
+      const client = await ensureFilesystemClient();
+      if (!client) throw new Error("Der lokale Dateiserver ist nicht verfügbar. Bitte die Vault-Verbindung prüfen.");
+      const note = await client.callTool({ name: "read_text_file", arguments: { path: absolutePath } });
+      if (note.isError) throw new Error(note.content?.map((item) => item.text || "").join("\\n") || "Die Notiz konnte nicht gelesen werden.");
+      const content = note.content?.map((item) => item.text || "").join("\\n") || "";
+      if (content.length > MAX_HANDOFF_NOTE_CHARS) throw new Error(`Die Notiz überschreitet ${MAX_HANDOFF_NOTE_CHARS} Zeichen. Bitte sende eine kürzere Auswahl.`);
+      return { content: [{ type: "text", text: `Notiz bereit: ${relativePath}` }], structuredContent: { path: relativePath, content, title: path.basename(relativePath, ".md") } };
+    }
 
     if (name === "choose_vault") {
       for (const [selectionId, selection] of selections) {
@@ -408,6 +646,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const client = await ensureFilesystemClient();
     if (!client) throw new Error("No Vault is configured. Open configure_vault first.");
     const localConfig = await loadConfig();
+    if (!normalizeAppPreferences(localConfig.config.appPreferences).allowNoteEditing && WRITE_TOOLS.has(name)) {
+      throw new Error("Schreibzugriff auf den Vault ist in den Obsidian-Einstellungen gesperrt. Ändere die Einstellung, wenn du Dateien bearbeiten möchtest.");
+    }
     const scope = await validateConfiguration(localConfig.vaultPath, localConfig.config);
     const knownTools = (await client.listTools()).tools;
     if (!knownTools.some((tool) => tool.name === name)) throw new Error(`Unknown Vault tool: ${name}`);
@@ -424,7 +665,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 });
 
 server.setRequestHandler(ListResourcesRequestSchema, async () => ({
-  resources: [{ uri: UI_RESOURCE_URI, name: "Obsidian Vault Setup", description: "Local Vault and retrieval-scope configuration UI.", mimeType: "text/html;profile=mcp-app" }],
+  resources: [{ uri: UI_RESOURCE_URI, name: "Obsidian Vault Browser", description: "Browse the connected Vault and read Markdown notes, or manage the Vault connection.", mimeType: "text/html;profile=mcp-app" }],
 }));
 
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {

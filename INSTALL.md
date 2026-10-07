@@ -20,6 +20,12 @@ After installation, use **Vault verbinden**. Codex runs the packaged onboarding 
 
 The Vault settings action opens the plugin's setup app from Codex settings. The app shows a saved connection and lets you change the Vault or its exclusions. The setup skill checks status before opening it, so a valid connection stays available without repeating setup.
 
+In the **Obsidian** sidebar browser, open **Einstellungen** to switch the active Vault, show dotfiles by default, or disable note and filesystem editing. These preferences are stored locally and remain in effect after changing Vaults. A disabled editing setting blocks Vault write tools on the MCP server while leaving reading and search available.
+
+### Optional Obsidian companion plugin
+
+Build it with `npm run build:obsidian`. Copy `obsidian-plugin/manifest.json` and `obsidian-plugin/main.js` into `<Vault>/.obsidian/plugins/obsidian-codex-bridge/`, then enable **Obsidian to Codex** in Obsidian. The commands **Obsidian-Notiz an aktuellen Codex-Chat senden** and **Textauswahl an aktuellen Codex-Chat senden** open the Codex handoff view. Review the content and click **In aktuellen Chat senden** to submit it. Note reads use the already-connected Vault MCP and honor its access scope and exclusions. Existing agent skills continue to search, enrich, and write Vault notes as before.
+
 The UI flow stores `.vault-config.json` locally and does not create a global memory database or vector index. Earlier installations using `.vault-path` and `.vault-config.json` remain readable. The filesystem runtime is installed automatically on first MCP startup when `npm` is available.
 
 Terminal/automation fallback:

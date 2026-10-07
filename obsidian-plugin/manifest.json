@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-codex-bridge",
+  "name": "Obsidian to Codex",
+  "version": "0.1.0",
+  "minAppVersion": "1.5.3",
+  "description": "Übergibt eine aktive Obsidian-Notiz oder Textauswahl an den aktuellen Codex-Chat.",
+  "author": "Leon Stadler",
+  "authorUrl": "https://leon-stadler.com",
+  "isDesktopOnly": true
+}
