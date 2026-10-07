@@ -1,5 +1,156 @@
 # Changelog
 
+## 0.13.0 — 2026-10-07
+
+### Features
+
+- `ui/vault-setup.html` and `ui/vault-setup.js`: move the dotfile visibility control out of the browser overview and into **Einstellungen**; add inline, case-insensitive filename and folder-name search with relative paths in results.
+- `scripts/vault-mcp-server.mjs` and `scripts/vault-scope.mjs`: add app-only scoped name search that respects retrieval roots, exclusions, symlink checks, and the saved dotfile preference without searching note contents.
+- `scripts/test-vault-mcp.py`: verify inline-search UI, filename and folder search, hidden-file preference behavior, and exclusions; integration suite passes 80 checks.
+
+### Docs
+
+- `README.md`: explain inline name search, search scope, and the settings location for dotfile visibility.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, `ui/vault-setup.js`, `ui/vault-setup.bundle.html`, `scripts/build-vault-ui.mjs`, and `scripts/vault-mcp-server.mjs`: synchronize version `0.13.0` and publish the refreshed UI under `vault-setup-v7.html`.
+
+## 0.12.0 — 2026-10-07
+
+### Features
+
+- `ui/vault-setup.html` and `ui/vault-setup.js`: add an Obsidian-style settings panel to the browser with the active Vault path, a Vault-switch action, persistent dotfile visibility, and an editing permission toggle.
+- `scripts/vault-mcp-server.mjs`: persist app preferences in the stable local Vault config, preserve them when changing Vaults or scope, apply the saved dotfile setting, and enforce disabled editing for app saves and filesystem write tools. Existing configs default to hidden dotfiles and editing enabled.
+- `scripts/test-vault-mcp.py`: cover settings rendering, persisted hidden-file preferences, and denial of app and agent writes when editing is disabled; MCP integration coverage now has 76 checks.
+
+### Docs
+
+- `README.md`, `changelog.md`, and the Obsidian project notes `Obsidian Vault Assistant.md`, `Architektur.md`, and `Betrieb und Entwicklung.md`: document Vault settings, preference persistence, write protection, and current validation status.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, `scripts/vault-mcp-server.mjs`, and `ui/vault-setup.js`: synchronize plugin version to `0.12.0` and publish the UI under resource URI `vault-setup-v6.html`.
+
+## 0.11.0 — 2026-10-07
+
+### Features
+
+- `ui/vault-setup.html`, `ui/vault-setup.js`, and new `ui/markdown-preview.js`: add Markdown editing and a rendered preview mode. The preview supports CommonMark and Markdown extensions such as tables, fenced code, and linkification; raw HTML is disabled and rendered output is sanitized. Context handoff can use a selection in either the editor or preview.
+- `ui/vault-setup.bundle.html`: bundle the renderer and sanitizer locally without CDN dependencies.
+- `scripts/vault-mcp-server.mjs`: publish the changed UI under `vault-setup-v5.html` so Codex can fetch the new view instead of reusing a cached resource.
+- `scripts/test-vault-mcp.py`: verify the versioned resource URI and packaged Markdown editor/preview controls; the MCP integration suite now has 73 checks.
+
+### Docs
+
+- `README.md`: document editor/preview modes, supported Markdown rendering, and safe HTML handling.
+
+### Chores
+
+- `package.json` and `package-lock.json`: add exact versions of `markdown-it` and `dompurify`, and update `@modelcontextprotocol/sdk` to `1.32.1`. The SDK update resolves the high-severity issue reported for `1.30.0`; `npm audit` reports no vulnerabilities.
+- `plugin.json`, `.codex-plugin/plugin.json`, and `ui/vault-setup.js`: synchronize plugin version to `0.11.0`.
+
+## 0.10.0 — 2026-10-07
+
+### Features
+
+- `scripts/vault-mcp-server.mjs`: add an app-only directory-listing tool that hides dot-prefixed files and folders by default, while applying the existing Vault scope, exclusions, and symlink checks. The app can request hidden entries explicitly without bypassing saved restrictions.
+- `ui/vault-setup.html`, `ui/vault-setup.js`, and `ui/vault-setup.bundle.html`: add the hidden-file toggle and refine the browser into an Obsidian-style split view with a file tree, purple selection treatment, host-aware colors and fonts, and a focused Markdown editor.
+- `scripts/test-vault-mcp.py`: cover hidden entries in the default listing and their explicit display; the MCP integration suite now has 72 checks.
+
+### Docs
+
+- `README.md`: document default hidden-file behavior and the refreshed browser design.
+- Obsidian project notes `Obsidian Vault Assistant.md`, `Architektur.md`, and `Betrieb und Entwicklung.md`: record version `0.10.0`, the new file-list behavior, and the current test and host-acceptance status.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, and `ui/vault-setup.js`: synchronize plugin version to `0.10.0`.
+
+## 0.9.0 — 2026-10-07
+
+### Features
+
+- `ui/vault-setup.html` and `ui/vault-setup.js`: add an editable Markdown note view with explicit save, reload, and add-to-chat actions. A text selection is sent by itself; otherwise the full note is sent after the user clicks the action. Show the selected note path and action results.
+- `scripts/vault-mcp-server.mjs`: add app-only `save_vault_note_from_app` with Vault scope, exclusion, symlink, size, and changed-on-disk checks; add the `Vault durchsuchen` thread entrypoint alongside the `Obsidian` sidebar entrypoint and supply app icons.
+- `scripts/test-vault-mcp.py`: cover the thread entrypoint, app-only save tool, save/conflict behavior, and denied excluded or symlinked destinations. The MCP integration suite now has 69 checks.
+
+### Docs
+
+- `README.md`: explain note editing, safe saves, the thread tab, and explicit whole-note or selection context transfer.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, and `ui/vault-setup.js`: synchronize the plugin to version `0.9.0`.
+
+## 0.8.0 — 2026-10-06
+
+### Features
+
+- `ui/vault-setup.html` and `ui/vault-setup.js`: turn the global Obsidian sidebar app into a Vault browser with accessible-root selection, folder navigation, breadcrumbs, a scoped Markdown reader, and visible errors for inaccessible folders. The separate setup flow remains available through Vault settings.
+- `scripts/vault-mcp-server.mjs`: distinguish browser launches from setup launches in the initial result and describe the global app as a browser and note reader.
+- `scripts/test-vault-mcp.py`: verify the browser controls and browser launch mode; existing MCP smoke cases continue to validate file listing, Markdown reading, exclusions, and symlink protection.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, `README.md`, and `ui/vault-setup.js`: bump to `0.8.0` for the Vault browser feature.
+
+## 0.7.4 — 2026-10-06
+
+### Fixes
+
+- `scripts/vault-mcp-server.mjs` and `scripts/test-vault-mcp.py`: publish the repaired UI under a new `vault-setup-v3.html` resource URI so Codex cannot reuse the previous blank-screen app resource.
+- `ui/vault-setup.js`, `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, and `README.md`: bump the patch version to `0.7.4` and synchronize plugin metadata.
+
+## 0.7.3 — 2026-10-06
+
+### Fixes
+
+- `scripts/build-vault-ui.mjs`: insert the bundled UI with a replacement callback so `$&` inside the bundle cannot be interpreted by `String.replace` and corrupt the inline script. This fixes the Codex sidebar app's blank screen.
+- `ui/vault-setup.js`, `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, and `README.md`: bump the patch version to `0.7.3` and synchronize plugin metadata.
+
+## 0.7.2 — 2026-10-06
+
+### Fixes
+
+- `scripts/vault-mcp-server.mjs`: rename the global MCP App entrypoint from “Vault-Kontext übernehmen” to **“Obsidian”**, so Codex labels its sidebar entry with the product name.
+- `scripts/test-vault-mcp.py`: verify that the global sidebar entrypoint keeps its registration and publishes the expected title.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, `README.md`, and `ui/vault-setup.js`: bump the patch version to `0.7.2` and synchronize plugin metadata.
+
+## 0.7.1 — 2026-10-06
+
+### Chores
+
+- `scripts/vault-mcp-server.mjs` and `scripts/test-vault-mcp.py`: publish the current MCP App under the versioned resource URI `vault-setup-v2.html`.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, `README.md`, and `ui/vault-setup.js`: bump the patch version to `0.7.1` and synchronize plugin metadata.
+
+## 0.7.0 — 2026-10-01
+
+### Features
+
+- `obsidian-plugin/manifest.json`, `obsidian-plugin/src/main.js`, `obsidian-plugin/main.js`, and `scripts/build-obsidian-plugin.mjs`: add a desktop Obsidian companion with commands to hand off the active Markdown note or current editor selection to the Codex Vault app. Selected text is bounded to 6,000 characters.
+- `scripts/vault-mcp-server.mjs`: add the global `open_vault_context` MCP App entrypoint and `read_note_for_handoff`, which reads one relative Markdown path within the saved Vault scope and caps the handoff at 24,000 characters.
+- `ui/vault-setup.html`, `ui/vault-setup.js`, and `ui/vault-setup.bundle.html`: add a reviewable handoff preview that sends note context to the active Codex conversation only after the user clicks the send action; retain the Vault setup and management flows.
+
+### Fixes
+
+- `ui/vault-setup.js`: keep non-status note-read results from resetting the setup view, avoid reprocessing the same deep link, and show the Vault repair action only when it can help.
+- `scripts/test-vault-mcp.py`: verify the global handoff entrypoint, preview UI, in-scope Markdown reading, exclusion and symlink denial, and the unconfigured handoff state; the MCP integration suite now contains 59 checks.
+
+### Docs
+
+- `README.md` and `INSTALL.md`: document building and enabling the optional Obsidian companion, its commands, size limits, review step, and preserved agent-driven Vault search and writing behavior.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, and `ui/vault-setup.js`: synchronize the Codex plugin release to `0.7.0` and describe note handoff in the plugin metadata.
+
 ## 0.6.0 — 2026-09-30
 
 ### Features

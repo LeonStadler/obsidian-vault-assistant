@@ -2,7 +2,7 @@
 
 Codex plugin for working with Obsidian vaults locally.
 
-Current version: `0.6.0`
+Current version: `0.13.0`
 
 ## What it does
 
@@ -10,6 +10,7 @@ Current version: `0.6.0`
 - enriches notes with structure, links, and durable knowledge
 - creates reusable templates for recurring note types
 - audits stale content, broken links, and structural drift
+- browses allowed Vault folders, reads and edits Markdown notes in Codex, and adds a note or selection to the current chat on request
 - uses the `obsidianVaultFilesystem` MCP to read and write only the vault directory you configure
 
 ## Focused vault context
@@ -38,7 +39,7 @@ This project is independent software and is not affiliated with, endorsed by, or
 - `mcp.example.json` for Cursor and other MCP clients
 - `scripts/install-local.sh` for local plugin and MCP setup
 - `scripts/configure-vault.sh` as an optional terminal fallback for changing the local Vault and retrieval scope
-- `scripts/vault-mcp-server.mjs`, `ui/vault-setup.html`, and `ui/vault-setup.js` for the in-Codex Vault setup app
+- `scripts/vault-mcp-server.mjs`, `ui/vault-setup.html`, and `ui/vault-setup.js` for the in-Codex Vault browser and setup app
 - `scripts/start-vault-mcp.sh` for MCP startup and local runtime bootstrapping
 - `.agents/plugins/marketplace.json` for GitHub marketplace distribution
 - `docs/legal/` for the privacy policy
@@ -54,7 +55,11 @@ codex plugin marketplace add LeonStadler/obsidian-vault-assistant
 
 Install the plugin from the marketplace in Codex. The packaged onboarding skill checks the connection after install and opens the setup app only if the Vault is not ready. Choose the Vault folder, optionally edit exclusions, and click **Verbinden**. Starter prompts are **Vault verbinden**, **Wissen im Vault suchen**, and **Notiz ergänzen**.
 
-Use **Vault verwalten** in the plugin settings to reopen the same app and change folders or exclusions. On a new connection, the whole Vault is accessible except `.obsidian`, `.git`, and `.trash`; `Archive`, `Archiv`, and `Attachments` are not excluded by default. Existing exclusions remain unchanged until edited.
+Das optionale Obsidian-Plugin in `obsidian-plugin/` ergänzt die Befehle **Obsidian-Notiz an aktuellen Codex-Chat senden** und **Textauswahl an aktuellen Codex-Chat senden**. Baue es mit `npm run build:obsidian`. Kopiere danach `obsidian-plugin/manifest.json` und `obsidian-plugin/main.js` nach `<Vault>/.obsidian/plugins/obsidian-codex-bridge/` und aktiviere es in Obsidian. Die Befehle öffnen die Codex-Übergabeansicht. Prüfe dort Notiz oder Auswahl und klicke **In aktuellen Chat senden**, bevor der Inhalt übermittelt wird. Notizpfade werden über den vorhandenen Vault-MCP-Zugriff, die Ausschlüsse und Symlink-Prüfungen gelesen. Die Übergabe ist auf 6.000 Zeichen für Auswahlen und 24.000 Zeichen für Notizen begrenzt. Die bestehenden Vault-Skills führen weiterhin die gezielte Suche, Anreicherung und Schreibvorgänge aus.
+
+Click **Obsidian** in Codex's sidebar to browse the configured retrieval folders and read or edit Markdown notes. The same browser is also available as the **Vault durchsuchen** thread tab through **Weitere Tools**. Use the inline search above the file list to find files and folders by name, case-insensitively; results show their relative path, and searching never reads note contents. Entries whose names start with a dot stay hidden by default. Change **Punktdateien anzeigen** in the browser's **Einstellungen** to show them. Vault exclusions remain enforced either way. The split-pane layout uses Codex's host colors and fonts with an Obsidian-style file tree, purple selection accent, and focused note editor. In the note pane, switch between **Markdown bearbeiten** and **Vorschau**. The preview renders CommonMark and Markdown extensions such as tables, fenced code blocks, and automatic links; raw HTML stays disabled and sanitized before display. Click **Änderungen speichern** to write an edit; a conflict check preserves the draft if the note changed since it was opened. Click **Als Kontext in aktuellen Chat übernehmen** to send the whole note, or select a passage in the editor or preview first to send only that passage. The browser uses the existing MCP path checks, so exclusions, retrieval roots, and symlink protections apply to reads and writes. Use **Vault verwalten** in the plugin settings to change folders or exclusions. On a new connection, the whole Vault is accessible except `.obsidian`, `.git`, and `.trash`; `Archive`, `Archiv`, and `Attachments` are not excluded by default. Existing exclusions remain unchanged until edited.
+
+Open **Einstellungen** in the Obsidian browser to see the active Vault path, choose another Vault, show or hide dotfiles by default, and allow or block note editing. The inline search follows the same visibility preference and still respects allowed roots and exclusions. The editing switch is enforced by the MCP proxy for both the app editor and filesystem write tools. Existing installations default to dotfiles hidden and editing allowed, preserving their previous behavior. Changing the Vault preserves these app preferences and the current connection until the new folder passes validation.
 
 The selected path and retrieval scope are stored locally on the Mac. The plugin does not independently upload Vault content, create a global index, or copy retrieved context into persistent memory. Tool results enter the active Codex conversation.
 

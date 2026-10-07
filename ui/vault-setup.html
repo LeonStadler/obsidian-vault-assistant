@@ -5,32 +5,162 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Obsidian-Vault verbinden</title>
     <style>
-      :root { color-scheme: light dark; font: 15px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--color-text-primary, CanvasText); background: var(--color-background-primary, Canvas); }
+      :root { color-scheme: light dark; font: 15px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--color-text-primary, CanvasText); background: var(--color-background-primary, Canvas); --oa-accent: var(--color-accent, #8b6cff); --oa-border: var(--color-border-primary, color-mix(in srgb, CanvasText 13%, transparent)); --oa-muted: var(--color-text-secondary, color-mix(in srgb, CanvasText 62%, transparent)); --oa-pane: var(--color-background-secondary, color-mix(in srgb, CanvasText 4%, Canvas)); }
       body { margin: 0; background: transparent; }
-      main { max-width: 600px; margin: 0 auto; padding: 24px; }
-      h1 { margin: 0 0 8px; font-size: 22px; line-height: 1.3; }
-      h2 { margin: 0 0 8px; font-size: 18px; line-height: 1.35; }
-      p { margin: 0 0 18px; color: var(--color-text-secondary, color-mix(in srgb, CanvasText 68%, transparent)); }
-      .panel { margin: 18px 0; padding: 16px; border: 1px solid var(--color-border-primary, color-mix(in srgb, CanvasText 18%, transparent)); border-radius: 12px; background: var(--color-background-secondary, color-mix(in srgb, CanvasText 4%, Canvas)); }
-      .path { margin-top: 4px; overflow-wrap: anywhere; color: var(--color-text-secondary, color-mix(in srgb, CanvasText 68%, transparent)); font-size: 13px; }
+      main { max-width: 1320px; margin: 0 auto; padding: clamp(18px, 3vw, 36px); }
+      h1 { margin: 0 0 8px; font-size: 22px; line-height: 1.3; letter-spacing: -.025em; }
+      h2 { margin: 0 0 8px; font-size: 18px; line-height: 1.35; letter-spacing: -.015em; }
+      p { margin: 0 0 18px; color: var(--oa-muted); }
+      .panel { margin: 18px 0; padding: 16px; border: 1px solid var(--oa-border); border-radius: 12px; background: var(--oa-pane); }
+      .path { margin-top: 4px; overflow-wrap: anywhere; color: var(--oa-muted); font-size: 13px; }
       label { display: block; margin: 12px 0 6px; font-weight: 600; }
-      textarea { box-sizing: border-box; width: 100%; min-height: 88px; padding: 10px 12px; resize: vertical; border: 1px solid var(--color-border-primary, color-mix(in srgb, CanvasText 24%, transparent)); border-radius: 8px; color: inherit; background: var(--color-background-primary, Canvas); font: inherit; }
-      button { min-height: 38px; padding: 8px 14px; border: 1px solid var(--color-border-primary, color-mix(in srgb, CanvasText 25%, transparent)); border-radius: 8px; color: inherit; background: var(--color-background-secondary, color-mix(in srgb, CanvasText 8%, Canvas)); font: inherit; font-weight: 600; cursor: pointer; }
-      button:focus-visible, textarea:focus-visible { outline: 2px solid var(--color-accent, #0f766e); outline-offset: 2px; }
-      button:disabled { cursor: wait; opacity: .58; }
-      .primary { border-color: var(--color-accent, #0f766e); color: white; background: var(--color-accent, #0f766e); }
+      textarea { box-sizing: border-box; width: 100%; min-height: 88px; padding: 10px 12px; resize: vertical; border: 1px solid var(--oa-border); border-radius: 8px; color: inherit; background: var(--color-background-primary, Canvas); font: inherit; }
+      button { min-height: 38px; padding: 8px 14px; border: 1px solid var(--oa-border); border-radius: 8px; color: inherit; background: var(--oa-pane); font: inherit; font-weight: 600; cursor: pointer; transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease; }
+      button:focus-visible, textarea:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--oa-accent); outline-offset: 2px; }
+      button:disabled { cursor: not-allowed; opacity: .58; }
+      .primary { border-color: var(--oa-accent); color: white; background: var(--oa-accent); }
       .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
       .notice { min-height: 24px; margin: 14px 0; }
       .warning { margin-top: 12px; padding: 10px 12px; border-inline-start: 3px solid #d99a22; border-radius: 4px; background: color-mix(in srgb, #d99a22 10%, transparent); }
+      .handoff { margin-bottom: 20px; }
+      .handoff-content { box-sizing: border-box; width: 100%; min-height: 180px; padding: 10px 12px; resize: vertical; border: 1px solid var(--oa-border); border-radius: 8px; color: inherit; background: var(--color-background-primary, Canvas); font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
       .disclosure { margin-top: 18px; }
-      .disclosure > button { padding-inline: 0; border: 0; color: var(--color-text-secondary, inherit); background: transparent; text-decoration: underline; text-underline-offset: 3px; }
+      .disclosure > button { padding-inline: 0; border: 0; color: var(--oa-muted); background: transparent; text-decoration: underline; text-underline-offset: 3px; }
+      .browser-titlebar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 4px 0 12px; }
+      .browser-titlebar h1 { margin: 0; }
+      .browser-titlebar-actions { display: flex; align-items: center; gap: 8px; }
+      .browser-settings { max-width: 720px; margin: 12px auto 18px; }
+      .settings-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 14px 0; border-bottom: 1px solid var(--oa-border); }
+      .settings-row:last-child { border-bottom: 0; }
+      .settings-row strong { display: block; }
+      .settings-row p { margin: 3px 0 0; font-size: 13px; }
+      .settings-row input { flex: 0 0 auto; width: 17px; height: 17px; margin: 3px 2px 0 0; accent-color: var(--oa-accent); }
+      .vault-setting-path { max-width: 70%; overflow-wrap: anywhere; color: var(--oa-muted); font-size: 13px; }
+      .connection-state { display: inline-flex; align-items: center; gap: 8px; color: var(--oa-muted); font-size: 13px; }
+      .connection-state::before { width: 8px; height: 8px; border-radius: 50%; background: #49a66d; content: ""; }
+      .browser-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; min-height: 42px; margin: 0 0 10px; padding: 4px 2px 9px; border-bottom: 1px solid var(--oa-border); background: transparent; }
+      .breadcrumbs, .toolbar-options { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .breadcrumbs { min-width: 0; }
+      .breadcrumbs button { min-height: 30px; padding: 4px 8px; border: 0; color: var(--oa-muted); background: transparent; text-decoration: none; }
+      .breadcrumbs button[aria-current="location"] { color: inherit; font-weight: 650; }
+      .breadcrumbs button:hover { color: var(--oa-accent); }
+      .breadcrumbs .separator { color: var(--oa-muted); opacity: .6; }
+      .browser-root { min-height: 34px; max-width: 240px; padding: 4px 8px; border: 1px solid var(--oa-border); border-radius: 7px; color: inherit; background: var(--color-background-primary, Canvas); font: inherit; }
+      .vault-search { box-sizing: border-box; width: min(330px, 42vw); min-height: 36px; padding: 6px 11px; border: 1px solid var(--oa-border); border-radius: 8px; color: inherit; background: var(--color-background-primary, Canvas); font: inherit; }
+      .browser-layout { display: grid; grid-template-columns: minmax(210px, 270px) minmax(0, 1fr); gap: 12px; min-height: 420px; max-height: calc(100vh - 175px); }
+      .browser-sidebar, .reader { min-width: 0; margin: 0; overflow: hidden; border: 1px solid var(--oa-border); border-radius: 11px; background: var(--oa-pane); }
+      .pane-heading { display: flex; align-items: center; justify-content: space-between; min-height: 42px; padding: 0 12px; border-bottom: 1px solid var(--oa-border); }
+      .pane-heading strong { font-size: 13px; font-weight: 650; }
+      .file-count { color: var(--oa-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+      .browser-list { box-sizing: border-box; margin: 0; padding: 7px; overflow: auto; max-height: calc(100vh - 230px); list-style: none; }
+      .browser-list li + li { margin-top: 2px; }
+      .browser-list button { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 34px; padding: 5px 9px; border-color: transparent; border-radius: 6px; background: transparent; text-align: left; font-size: 13px; font-weight: 450; overflow-wrap: anywhere; }
+      .browser-list button:hover { border-color: transparent; background: color-mix(in srgb, var(--oa-accent) 9%, transparent); }
+      .browser-list button.selected { border-inline-start: 2px solid var(--oa-accent); color: var(--oa-accent); background: color-mix(in srgb, var(--oa-accent) 14%, transparent); font-weight: 620; }
+      .entry-icon { flex: 0 0 17px; color: var(--oa-muted); font-size: 14px; text-align: center; }
+      .browser-list button[data-kind="directory"] .entry-icon { color: color-mix(in srgb, var(--oa-accent) 72%, var(--oa-muted)); }
+      .browser-list button.selected .entry-icon { color: var(--oa-accent); }
+      .entry-path { flex-basis: 100%; margin-inline-start: 26px; color: var(--oa-muted); font-size: 11px; font-weight: 450; }
+      .reader { display: flex; flex-direction: column; background: var(--color-background-primary, Canvas); }
+      .reader-header { padding: 18px 22px 13px; border-bottom: 1px solid var(--oa-border); }
+      .reader-header h2 { margin: 0; font-size: 20px; }
+      .reader-path { margin: 4px 0 0; color: var(--oa-muted); font-size: 12px; overflow-wrap: anywhere; }
+      .reader-body { flex: 1; min-height: 0; padding: 14px 22px 22px; overflow: auto; }
+      .reader-mode-tabs { display: flex; gap: 4px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--oa-border); }
+      .reader-mode-tabs button { min-height: 30px; padding: 4px 10px; border-color: transparent; border-radius: 6px; color: var(--oa-muted); background: transparent; font-size: 13px; }
+      .reader-mode-tabs button[aria-pressed="true"] { color: var(--oa-accent); background: color-mix(in srgb, var(--oa-accent) 13%, transparent); }
+      .reader-content { display: block; box-sizing: border-box; width: 100%; min-height: min(54vh, 560px); padding: 4px 0; overflow: auto; resize: vertical; white-space: pre-wrap; overflow-wrap: anywhere; border: 0; border-radius: 0; color: inherit; background: transparent; font: 15px/1.75 var(--font-text, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif); tab-size: 2; }
+      .reader-content:focus-visible { outline-offset: 4px; }
+      .markdown-preview { min-height: min(54vh, 560px); overflow-wrap: anywhere; font: 15px/1.75 var(--font-text, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif); }
+      .markdown-preview > :first-child { margin-top: 0; }
+      .markdown-preview h1, .markdown-preview h2, .markdown-preview h3, .markdown-preview h4, .markdown-preview h5, .markdown-preview h6 { margin: 1.35em 0 .55em; line-height: 1.35; letter-spacing: -.02em; }
+      .markdown-preview h1 { padding-bottom: .25em; border-bottom: 1px solid var(--oa-border); font-size: 1.8em; }
+      .markdown-preview h2 { padding-bottom: .2em; border-bottom: 1px solid var(--oa-border); font-size: 1.45em; }
+      .markdown-preview h3 { font-size: 1.2em; }
+      .markdown-preview p, .markdown-preview ul, .markdown-preview ol, .markdown-preview blockquote, .markdown-preview pre, .markdown-preview table { margin: 0 0 1em; }
+      .markdown-preview ul, .markdown-preview ol { padding-inline-start: 1.6em; }
+      .markdown-preview blockquote { padding: 2px 0 2px 14px; border-inline-start: 3px solid var(--oa-accent); color: var(--oa-muted); }
+      .markdown-preview code { padding: .12em .35em; border-radius: 4px; background: var(--oa-pane); font: .9em ui-monospace, SFMono-Regular, Menlo, monospace; }
+      .markdown-preview pre { padding: 12px 14px; overflow: auto; border: 1px solid var(--oa-border); border-radius: 8px; background: var(--oa-pane); }
+      .markdown-preview pre code { padding: 0; background: transparent; }
+      .markdown-preview table { display: block; max-width: 100%; overflow: auto; border-collapse: collapse; }
+      .markdown-preview th, .markdown-preview td { padding: 6px 10px; border: 1px solid var(--oa-border); text-align: left; }
+      .markdown-preview th { background: var(--oa-pane); }
+      .markdown-preview a { color: var(--oa-accent); text-decoration: underline; text-underline-offset: 2px; }
+      .markdown-preview hr { height: 1px; margin: 1.5em 0; border: 0; background: var(--oa-border); }
+      .reader-empty { display: grid; place-items: center; min-height: 300px; margin: 0; color: var(--oa-muted); font-size: 14px; text-align: center; }
+      .reader-actions { padding: 12px 22px 16px; border-top: 1px solid var(--oa-border); }
+      .reader-actions .actions { margin: 0; }
+      .reader-notice { margin: 8px 0 0; font-size: 13px; }
+      @media (max-width: 700px) { main { padding: 16px; } .browser-titlebar { align-items: flex-start; } .browser-toolbar { align-items: flex-start; } .browser-layout { grid-template-columns: minmax(0, 1fr); max-height: none; } .browser-list { max-height: 32vh; } .reader { min-height: 44vh; } .reader-header { padding: 15px 16px 11px; } .reader-body { padding: 12px 16px 18px; } .reader-actions { padding: 12px 16px; } .reader-content { min-height: 28vh; } }
       [hidden] { display: none !important; }
     </style>
   </head>
   <body>
     <main aria-labelledby="title">
       <h1 id="title">Obsidian-Vault verbinden</h1>
-      <p>Wähle den Ordner deines Vaults. Codex kann anschließend Notizen daraus lesen und dort Änderungen schreiben.</p>
+      <p id="setup-description">Wähle den Ordner deines Vaults. Codex kann anschließend Notizen daraus lesen und dort Änderungen schreiben.</p>
+      <section id="browser" hidden aria-label="Obsidian Vault durchsuchen">
+        <div class="browser-titlebar">
+          <span class="connection-state">Vault verbunden</span>
+          <div class="browser-titlebar-actions"><button id="toggle-settings" type="button" aria-expanded="false" aria-controls="browser-settings">Einstellungen</button></div>
+        </div>
+        <section id="browser-settings" class="panel browser-settings" aria-label="Obsidian Vault Assistant Einstellungen" hidden>
+          <h2>Obsidian-Einstellungen</h2>
+          <div class="settings-row"><div><strong>Aktiver Vault</strong><p id="settings-vault-path" class="vault-setting-path"></p></div><button id="change-vault" type="button">Vault wechseln</button></div>
+          <label class="settings-row" for="settings-show-hidden"><span><strong>Punktdateien anzeigen</strong><p>Dateien und Ordner, deren Name mit einem Punkt beginnt, im Dateibaum anzeigen.</p></span><input id="settings-show-hidden" type="checkbox" /></label>
+          <label class="settings-row" for="settings-allow-editing"><span><strong>Notizen bearbeiten erlauben</strong><p>Wenn deaktiviert, sind Editor-Speichern und alle Vault-Schreibwerkzeuge gesperrt.</p></span><input id="settings-allow-editing" type="checkbox" /></label>
+          <p id="settings-notice" role="status" aria-live="polite" hidden></p>
+        </section>
+        <div id="browser-toolbar" class="browser-toolbar">
+          <div class="breadcrumbs" id="breadcrumbs" aria-label="Ordnerpfad"></div>
+          <div class="toolbar-options">
+            <input id="vault-search" class="vault-search" type="search" maxlength="256" placeholder="Dateien und Ordner suchen…" aria-label="Im Vault nach Datei- und Ordnernamen suchen" autocomplete="off" />
+            <label for="browser-root" hidden>Durchsuchbarer Vault-Bereich</label>
+            <select id="browser-root" class="browser-root" aria-label="Durchsuchbarer Vault-Bereich" hidden></select>
+          </div>
+        </div>
+        <div id="browser-layout" class="browser-layout">
+          <nav class="browser-sidebar" aria-label="Dateien und Ordner">
+            <div class="pane-heading"><strong>Dateien</strong><span id="file-count" class="file-count"></span></div>
+            <ul id="browser-list" class="browser-list" aria-live="polite"></ul>
+          </nav>
+          <section class="reader" aria-label="Notizinhalt" aria-live="polite">
+            <header class="reader-header">
+              <h2 id="reader-title">Wähle eine Markdown-Notiz</h2>
+              <p id="reader-path" class="reader-path" hidden></p>
+            </header>
+            <div class="reader-body">
+              <p id="reader-empty" class="reader-empty">Wähle links eine Notiz aus deinem Vault.</p>
+              <div id="reader-mode-tabs" class="reader-mode-tabs" role="group" aria-label="Notizansicht" hidden>
+                <button id="edit-mode" type="button" aria-pressed="true" aria-controls="reader-content">Markdown bearbeiten</button>
+                <button id="preview-mode" type="button" aria-pressed="false" aria-controls="markdown-preview">Vorschau</button>
+              </div>
+              <textarea id="reader-content" class="reader-content" aria-label="Markdown-Notiz bearbeiten" spellcheck="false" hidden></textarea>
+              <article id="markdown-preview" class="markdown-preview" aria-label="Gerenderte Markdown-Vorschau" tabindex="0" hidden></article>
+            </div>
+            <footer id="reader-actions" class="reader-actions" hidden>
+              <div class="actions">
+                <button id="reload-note" type="button">Änderungen verwerfen und neu laden</button>
+                <button id="save-note" class="primary" type="button" disabled>Änderungen speichern</button>
+                <button id="add-note-context" type="button" disabled>Als Kontext in aktuellen Chat übernehmen</button>
+              </div>
+              <p id="reader-notice" class="reader-notice" role="status" aria-live="polite" hidden></p>
+            </footer>
+          </section>
+        </div>
+      </section>
+      <section id="handoff" class="panel handoff" hidden aria-live="polite">
+        <h2 id="handoff-title" tabindex="-1">Notiz an Codex übergeben</h2>
+        <p id="handoff-description">Prüfe den Inhalt. Erst mit „In aktuellen Chat senden“ wird er in die Unterhaltung übernommen.</p>
+        <div id="handoff-source" class="path"></div>
+        <textarea id="handoff-content" class="handoff-content" aria-label="An Codex zu übergebender Notizinhalt" readonly></textarea>
+        <div id="handoff-warning" class="warning" hidden></div>
+        <div class="actions">
+          <button id="send-handoff" class="primary" type="button" disabled>In aktuellen Chat senden</button>
+          <button id="manage-vault" type="button" hidden>Vault verbinden</button>
+        </div>
+      </section>
       <section id="disconnected">
         <button id="choose" type="button">Ordner auswählen</button>
       </section>
