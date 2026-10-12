@@ -1,6 +1,6 @@
 {
   "name": "obsidian-vault-assistant",
-  "version": "0.13.0+codex.20261007000005",
+  "version": "0.16.0+codex.20261012000002",
   "description": "Codex plugin for Obsidian vaults: browse, read, edit, search, enrich, and add notes to the active chat.",
   "author": {
     "name": "Leon Stadler",

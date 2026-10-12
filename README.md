@@ -2,7 +2,7 @@
 
 Codex plugin for working with Obsidian vaults locally.
 
-Current version: `0.13.0`
+Current version: `0.16.0`
 
 ## What it does
 
@@ -10,7 +10,8 @@ Current version: `0.13.0`
 - enriches notes with structure, links, and durable knowledge
 - creates reusable templates for recurring note types
 - audits stale content, broken links, and structural drift
-- browses allowed Vault folders, reads and edits Markdown notes in Codex, and adds a note or selection to the current chat on request
+- includes an Obsidian-style Vault viewer and Markdown editor directly in Codex, with folder navigation, rendered preview, and explicit note editing
+- browses allowed Vault folders and adds a note or selection to the current chat on request
 - uses the `obsidianVaultFilesystem` MCP to read and write only the vault directory you configure
 
 ## Focused vault context
@@ -37,35 +38,47 @@ This project is independent software and is not affiliated with, endorsed by, or
 - `skills/` for the core tasks
 - `skills/project-documentation/` for repository-to-Vault project documentation routing
 - `mcp.example.json` for Cursor and other MCP clients
-- `scripts/install-local.sh` for local plugin and MCP setup
+- `scripts/install-local.sh` for local development installs
+- `scripts/build-vault-runtime.mjs` for building the self-contained MCP runtime shipped with the plugin
 - `scripts/configure-vault.sh` as an optional terminal fallback for changing the local Vault and retrieval scope
 - `scripts/vault-mcp-server.mjs`, `ui/vault-setup.html`, and `ui/vault-setup.js` for the in-Codex Vault browser and setup app
-- `scripts/start-vault-mcp.sh` for MCP startup and local runtime bootstrapping
+- `scripts/start-vault-mcp.sh` for starting the bundled MCP runtime without downloading packages
 - `.agents/plugins/marketplace.json` for GitHub marketplace distribution
 - `docs/legal/` for the privacy policy
 - `INSTALL.md` for setup instructions
 
 ## Installation
 
-GitHub marketplace:
+Install the plugin through Codex Marketplace:
 
 ```bash
 codex plugin marketplace add LeonStadler/obsidian-vault-assistant
+codex plugin add obsidian-vault-assistant@obsidian-vault-assistant
 ```
 
-Install the plugin from the marketplace in Codex. The packaged onboarding skill checks the connection after install and opens the setup app only if the Vault is not ready. Choose the Vault folder, optionally edit exclusions, and click **Verbinden**. Starter prompts are **Vault verbinden**, **Wissen im Vault suchen**, and **Notiz ergänzen**.
+You can also add the marketplace and install the plugin from the Codex interface. Start a new chat after installation. The onboarding skill checks the Vault connection and opens the setup app only if setup or repair is needed. Choose the Vault folder, optionally edit exclusions, and click **Verbinden**. Starter prompts are **Vault verbinden**, **Wissen im Vault suchen**, and **Notiz ergänzen**.
+
+The plugin includes its MCP runtime. Codex needs Node.js 18 or newer to run the local server; it does not need npm, a first-launch package download, or a separate runtime installer. Vault connection and repair happen in the Codex setup app.
 
 Das optionale Obsidian-Plugin in `obsidian-plugin/` ergänzt die Befehle **Obsidian-Notiz an aktuellen Codex-Chat senden** und **Textauswahl an aktuellen Codex-Chat senden**. Baue es mit `npm run build:obsidian`. Kopiere danach `obsidian-plugin/manifest.json` und `obsidian-plugin/main.js` nach `<Vault>/.obsidian/plugins/obsidian-codex-bridge/` und aktiviere es in Obsidian. Die Befehle öffnen die Codex-Übergabeansicht. Prüfe dort Notiz oder Auswahl und klicke **In aktuellen Chat senden**, bevor der Inhalt übermittelt wird. Notizpfade werden über den vorhandenen Vault-MCP-Zugriff, die Ausschlüsse und Symlink-Prüfungen gelesen. Die Übergabe ist auf 6.000 Zeichen für Auswahlen und 24.000 Zeichen für Notizen begrenzt. Die bestehenden Vault-Skills führen weiterhin die gezielte Suche, Anreicherung und Schreibvorgänge aus.
 
-Click **Obsidian** in Codex's sidebar to browse the configured retrieval folders and read or edit Markdown notes. The same browser is also available as the **Vault durchsuchen** thread tab through **Weitere Tools**. Use the inline search above the file list to find files and folders by name, case-insensitively; results show their relative path, and searching never reads note contents. Entries whose names start with a dot stay hidden by default. Change **Punktdateien anzeigen** in the browser's **Einstellungen** to show them. Vault exclusions remain enforced either way. The split-pane layout uses Codex's host colors and fonts with an Obsidian-style file tree, purple selection accent, and focused note editor. In the note pane, switch between **Markdown bearbeiten** and **Vorschau**. The preview renders CommonMark and Markdown extensions such as tables, fenced code blocks, and automatic links; raw HTML stays disabled and sanitized before display. Click **Änderungen speichern** to write an edit; a conflict check preserves the draft if the note changed since it was opened. Click **Als Kontext in aktuellen Chat übernehmen** to send the whole note, or select a passage in the editor or preview first to send only that passage. The browser uses the existing MCP path checks, so exclusions, retrieval roots, and symlink protections apply to reads and writes. Use **Vault verwalten** in the plugin settings to change folders or exclusions. On a new connection, the whole Vault is accessible except `.obsidian`, `.git`, and `.trash`; `Archive`, `Archiv`, and `Attachments` are not excluded by default. Existing exclusions remain unchanged until edited.
+## Obsidian viewer and Markdown editor in Codex
+
+The plugin includes an Obsidian-style Vault viewer and Markdown editor directly inside Codex. Click **Obsidian** in the sidebar to browse the configured Vault folders, open notes, and edit them without leaving Codex. You can also open the same viewer as a **Vault durchsuchen** tab through **Weitere Tools**.
+
+The viewer has a file and folder pane beside the note. Its fonts, colors, spacing, and light/dark theme follow Codex host styles while keeping a focused Obsidian-like file tree and Markdown reading experience. Use the inline search to find names case-insensitively; results show their Vault-relative path, and the search does not scan note contents. Dotfiles are hidden by default; change **Punktdateien anzeigen** under **Einstellungen** to show them. Retrieval roots, exclusions, and symlink protections apply to browsing, searching, reading, and writing.
+
+In the note pane, switch between **Markdown bearbeiten** and **Vorschau**. The preview renders CommonMark and Markdown extensions such as tables, fenced code blocks, and automatic links; raw HTML stays disabled and sanitized before display. Click **Änderungen speichern** to save an edit. If the note changed since it was opened, a conflict check preserves the draft. **Als Kontext in aktuellen Chat übernehmen** sends the whole note, or only a selected passage if you select text in the editor or preview first.
+
+Use **Vault verwalten** in the plugin settings to change folders or exclusions. On a new connection, the whole Vault is accessible except `.obsidian`, `.git`, and `.trash`; `Archive`, `Archiv`, and `Attachments` are not excluded by default. Existing exclusions remain unchanged until edited.
 
 Open **Einstellungen** in the Obsidian browser to see the active Vault path, choose another Vault, show or hide dotfiles by default, and allow or block note editing. The inline search follows the same visibility preference and still respects allowed roots and exclusions. The editing switch is enforced by the MCP proxy for both the app editor and filesystem write tools. Existing installations default to dotfiles hidden and editing allowed, preserving their previous behavior. Changing the Vault preserves these app preferences and the current connection until the new folder passes validation.
 
 The selected path and retrieval scope are stored locally on the Mac. The plugin does not independently upload Vault content, create a global index, or copy retrieved context into persistent memory. Tool results enter the active Codex conversation.
 
-The plugin installs the filesystem MCP runtime on first use when needed. A terminal setup is only needed for Cursor, automation, or a host that cannot render MCP App UI.
+For Cursor, automation, or another MCP host, see [INSTALL.md](INSTALL.md). Those advanced setup paths are separate from the Codex Marketplace installation.
 
-Local install:
+Local developer install:
 
 ```bash
 git clone https://github.com/LeonStadler/obsidian-vault-assistant.git "$HOME/.codex/plugins/obsidian-vault-assistant"
@@ -73,7 +86,7 @@ cd "$HOME/.codex/plugins/obsidian-vault-assistant"
 scripts/install-local.sh
 ```
 
-Restart Codex after installation and start a new task so the skills and bundled MCP are loaded.
+The local developer installer registers a clone in Codex. Restart Codex and start a new task so the skills and bundled MCP are loaded. Building from source requires npm; running the installed plugin does not.
 
 To change the local Vault later, open the same setup prompt again. The terminal command remains available as a fallback:
 

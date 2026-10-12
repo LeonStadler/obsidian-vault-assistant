@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "obsidian-vault-assistant",
-  "version": "0.13.0",
+  "version": "0.16.0",
   "description": "Obsidian Vault knowledge tools, native setup, and note handoff to Codex.",
   "author": {
     "name": "Leon Stadler",

@@ -7,49 +7,38 @@ import { constants } from "node:fs";
 import { readFile, writeFile, mkdir, stat, realpath, access, open, unlink, rename } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { scopedListing, validateScopedPath, resolveDestination } from "./vault-scope.mjs";
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  CallToolRequestSchema,
+  ListResourcesRequestSchema,
+  ListToolsRequestSchema,
+  ReadResourceRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
+import { minimatch } from "minimatch";
 
-const nodeModulesDir = process.env.VAULT_MCP_NODE_MODULES;
-const filesystemEntry = process.env.VAULT_MCP_FILESYSTEM_ENTRY;
+const pluginDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const filesystemEntry = path.join(pluginDir, "scripts", "filesystem-server.bundle.mjs");
 const configDir = path.resolve(
   process.env.VAULT_MCP_CONFIG_DIR ||
     path.join(os.homedir(), ".codex", "plugins", "obsidian-vault-assistant"),
 );
 
-if (!nodeModulesDir || !filesystemEntry) {
-  console.error("Vault MCP runtime paths are missing.");
-  process.exit(69);
-}
-
-const sdkBase = path.join(nodeModulesDir, "@modelcontextprotocol", "sdk", "dist", "esm");
-const { Server } = await import(pathToFileURL(path.join(sdkBase, "server", "index.js")).href);
-const { Client } = await import(pathToFileURL(path.join(sdkBase, "client", "index.js")).href);
-const { StdioClientTransport } = await import(
-  pathToFileURL(path.join(sdkBase, "client", "stdio.js")).href,
-);
-const { StdioServerTransport } = await import(
-  pathToFileURL(path.join(sdkBase, "server", "stdio.js")).href,
-);
-const {
-  CallToolRequestSchema,
-  ListResourcesRequestSchema,
-  ListToolsRequestSchema,
-  ReadResourceRequestSchema,
-} = await import(pathToFileURL(path.join(sdkBase, "types.js")).href);
-
-const UI_RESOURCE_URI = "ui://obsidian-vault-assistant/vault-setup-v7.html";
+const UI_RESOURCE_URI = "ui://obsidian-vault-assistant/vault-setup-v9.html";
 const APP_ICON = `data:image/svg+xml;base64,${Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"><path d="M5 3.5h10a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 15V5A1.5 1.5 0 0 1 5 3.5Z" stroke="currentColor" stroke-width="1.33"/><path d="M6.5 7h7m-7 3h7m-7 3h4" stroke="currentColor" stroke-width="1.33" stroke-linecap="round"/></svg>').toString("base64")}`;
 const MAX_HANDOFF_NOTE_CHARS = 24000;
 const MAX_EDITABLE_NOTE_CHARS = 200000;
-const { minimatch } = await import(pathToFileURL(path.join(nodeModulesDir, "minimatch", "dist", "esm", "index.js")).href);
 const DEFAULT_EXCLUDES = [".obsidian", ".git", ".trash"];
 const DEFAULT_APP_PREFERENCES = { showHiddenFiles: false, allowNoteEditing: true };
 const WRITE_TOOLS = new Set(["write_file", "edit_file", "create_directory", "move_file", "delete_file"]);
 const executeFile = promisify(execFile);
-const version = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8")).version;
+const version = JSON.parse(await readFile(path.join(pluginDir, "package.json"), "utf8")).version;
 const selections = new Map();
-const setupUiPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../ui/vault-setup.bundle.html");
+const setupUiPath = path.join(pluginDir, "ui", "vault-setup.bundle.html");
 const setupUi = await readFile(setupUiPath, "utf8");
 
 let filesystemClient = null;

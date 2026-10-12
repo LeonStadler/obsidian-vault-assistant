@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.16.0 — 2026-10-12
+
+### Features
+
+- `scripts/vault-mcp-server.mjs`, `scripts/filesystem-server.bundle.mjs`, `scripts/vault-mcp-server.bundle.mjs`, and `scripts/build-vault-runtime.mjs`: ship both MCP processes as local bundles so first startup does not download or install npm packages.
+- `scripts/start-vault-mcp.sh`: start the bundled runtime directly, require Node.js 18 or newer, and report actionable messages for a missing Node runtime or incomplete plugin package.
+- `scripts/install-local.sh`: register local development installs without installing npm dependencies into the plugin directory.
+- `scripts/test-vault-mcp.py`: validate the packaged runtime while `npm` is absent from its runtime `PATH`, alongside the existing setup, Vault access, search, read, and write checks.
+
+### Docs
+
+- `README.md` and `INSTALL.md`: make Codex Marketplace plus the in-app Vault setup the single recommended installation flow; document Node.js as a runtime prerequisite, separate local development and other MCP hosts, and remove competing manual Codex installation steps.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, `ui/vault-setup.js`, and `README.md`: synchronize version `0.16.0`.
+- `scripts/install-runtime.sh`: remove the first-start npm dependency installer, which is no longer needed by the bundled runtime.
+
+## 0.15.0 — 2026-10-12
+
+### Features
+
+- `ui/vault-setup.html` and generated `ui/vault-setup.bundle.html`: refresh setup, Vault settings, file tree, and Markdown reader with Codex host colors, typography, borders, spacing, reduced-motion support, clearer selected-file state, and a more focused first-connection card.
+- `scripts/vault-mcp-server.mjs`, `ui/vault-setup.js`, and `scripts/test-vault-mcp.py`: publish the refreshed app as `vault-setup-v9.html`; verify first-install manifest wiring, cold runtime installation, setup resources, and host-theme tokens.
+- `scripts/test-vault-mcp.py`: cover first-run unconfigured status, staged folder selection, cancellation and failed-connect preservation, successful read/write, and persisted readiness after restart.
+
+### Docs
+
+- `README.md` and `INSTALL.md`: document host-theme matching and clarify that a new Vault selection remains temporary until the user confirms the connection.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, and `ui/vault-setup.js`: synchronize the plugin and app version to `0.15.0`.
+
+## 0.14.0 — 2026-10-08
+
+### Features
+
+- `README.md`: call out the Obsidian-style viewer and Markdown editor as a built-in Codex feature, and explain navigation, preview, editing, and scope behavior in a dedicated section.
+- `ui/vault-setup.html` and generated `ui/vault-setup.bundle.html`: refine the browser into a continuous Obsidian-like workspace with a connected file tree and note pane, a readable line length for long notes, clearer editor/preview tabs, and a responsive stacked layout.
+- `scripts/vault-mcp-server.mjs`, `scripts/test-vault-mcp.py`, and `ui/vault-setup.js`: publish the refreshed interface under `vault-setup-v8.html` and verify the versioned resource.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, and `ui/vault-setup.js`: synchronize the plugin and app version to `0.14.0`.
+
 ## 0.13.0 — 2026-10-07
 
 ### Features

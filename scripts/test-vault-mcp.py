@@ -7,6 +7,7 @@ import json
 import base64
 import os
 import shutil
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -100,6 +101,9 @@ def is_success(name: str, detail: str) -> bool:
 def run_smoke(config_dir: Path) -> int:
     plugin_dir = Path(os.environ.get("PLUGIN_DIR", Path(__file__).resolve().parent.parent))
     start_script = plugin_dir / "scripts/start-vault-mcp.sh"
+    plugin_manifest = json.loads((plugin_dir / "plugin.json").read_text(encoding="utf-8"))
+    codex_manifest = json.loads((plugin_dir / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))
+    mcp_manifest = json.loads((plugin_dir / ".mcp.json").read_text(encoding="utf-8"))
     vault = config_dir / "vault"
     vault.mkdir()
     handoff_note = vault / "handoff-note.md"
@@ -133,15 +137,43 @@ def run_smoke(config_dir: Path) -> int:
         'cat "$VAULT_MCP_TEST_PICKER_RESULT"\n'
     )
     picker_script.chmod(0o755)
+    runtime_bin = config_dir / "runtime-bin"
+    runtime_bin.mkdir()
+    for executable_name in ["node", "bash"]:
+        executable_path = shutil.which(executable_name)
+        if executable_path is None:
+            raise RuntimeError(f"Required test executable is missing: {executable_name}")
+        (runtime_bin / executable_name).symlink_to(executable_path)
+    test_path = os.pathsep.join([str(picker_bin), str(runtime_bin), "/usr/bin", "/bin"])
+    missing_node_bin = config_dir / "missing-node-bin"
+    missing_node_bin.mkdir()
+    for executable_name in ["bash", "dirname"]:
+        executable_path = shutil.which(executable_name)
+        if executable_path is None:
+            raise RuntimeError(f"Required test executable is missing: {executable_name}")
+        (missing_node_bin / executable_name).symlink_to(executable_path)
     environment = {
         **os.environ,
-        "PATH": f"{picker_bin}{os.pathsep}{os.environ['PATH']}",
+        "PATH": test_path,
         "VAULT_MCP_CONFIG_DIR": str(config_dir),
         "VAULT_MCP_TEST_PICKER_RESULT": str(picker_result),
     }
     client = McpClient(["bash", str(start_script)], environment)
 
     results: list[tuple[str, str]] = []
+    missing_node_result = subprocess.run(
+        ["bash", str(start_script)],
+        capture_output=True,
+        check=False,
+        env={**environment, "PATH": str(missing_node_bin)},
+        text=True,
+    )
+    missing_node_message = "Node.js 18 or later" in missing_node_result.stderr
+    results.append(("missing_node_actionable", "ok" if missing_node_result.returncode == 69 and missing_node_message else "missing or unclear Node.js requirement"))
+    onboarding_skill = plugin_manifest.get("extensions", {}).get("com.openai", {}).get("onboardingSkill")
+    onboarding_ready = onboarding_skill == "./skills/vault-setup/SKILL.md" and (plugin_dir / onboarding_skill.removeprefix("./")).is_file()
+    mcp_ready = codex_manifest.get("mcpServers") == "./.mcp.json" and "obsidianVaultFilesystem" in mcp_manifest.get("mcpServers", {})
+    results.append(("plugin_first_install_manifest", "ok" if onboarding_ready and mcp_ready else "missing onboarding skill or MCP registration"))
     test_dir_name = f".codex-mcp-test-{uuid.uuid4().hex[:8]}"
     test_file_name = "mcp-smoke-test.md"
     moved_file_name = "mcp-smoke-test-moved.md"
@@ -157,6 +189,10 @@ def run_smoke(config_dir: Path) -> int:
             },
         )
         results.append(("initialize", init.get("serverInfo", {}).get("name", "ok")))
+        server_bundle = plugin_dir / "scripts/vault-mcp-server.bundle.mjs"
+        filesystem_bundle = plugin_dir / "scripts/filesystem-server.bundle.mjs"
+        runtime_ready = server_bundle.is_file() and filesystem_bundle.is_file() and shutil.which("npm", path=test_path) is None
+        results.append(("self_contained_runtime_without_npm", "ok" if runtime_ready else "runtime bundle missing or npm unexpectedly available"))
 
         client.notify("notifications/initialized")
 
@@ -191,12 +227,14 @@ def run_smoke(config_dir: Path) -> int:
         results.append(("configure_vault_ui", setup_uri if setup_uri else "missing UI resource metadata"))
 
         resources = client.request("resources/list").get("resources", [])
-        resource_uri = next((item.get("uri", "") for item in resources if item.get("uri") == "ui://obsidian-vault-assistant/vault-setup-v7.html"), "")
+        resource_uri = next((item.get("uri", "") for item in resources if item.get("uri") == "ui://obsidian-vault-assistant/vault-setup-v9.html"), "")
         resource = client.request("resources/read", {"uri": resource_uri}) if resource_uri else {}
         resource_content = resource.get("contents", [{}])[0]
         resource_html = resource_content.get("text", "")
         resource_ok = resource_content.get("mimeType") == "text/html;profile=mcp-app" and "Obsidian-Vault verbinden" in resource_html and "__VAULT_SETUP_BUNDLE__" not in resource_html and "choose_vault" in resource_html
         results.append(("vault_setup_resource", "ok" if resource_ok else f"mime={resource_content.get('mimeType')}; title={'Obsidian-Vault verbinden' in resource_html}; marker={'__VAULT_SETUP_BUNDLE__' in resource_html}; app={'choose_vault' in resource_html}; length={len(resource_html)}"))
+        host_style_ok = all(value in resource_html for value in ["--color-background-primary", "--color-text-info", "data-theme", "prefers-reduced-motion"])
+        results.append(("codex_host_theme_styles", "ok" if host_style_ok else "missing host theme, accent, or reduced-motion styles"))
         handoff_ui_ok = all(value in resource_html for value in ["handoff-content", "send-handoff"])
         results.append(("handoff_preview_ui", "ok" if handoff_ui_ok else "missing preview or send control"))
         browser_ui_ok = all(value in resource_html for value in ['id="browser"', 'id="browser-layout"', 'id="browser-list"', 'id="reader-content"', 'name:"list_vault_directory_for_app"', 'name:"search_vault_entries_for_app"', 'name:"read_text_file"', 'id="vault-search"', 'id="save-note"', 'id="add-note-context"', 'id="browser-settings"', 'id="change-vault"', 'id="settings-show-hidden"', 'id="settings-allow-editing"', 'name:"save_vault_note_from_app"']) and 'id="show-hidden"' not in resource_html
@@ -435,7 +473,6 @@ def run_smoke(config_dir: Path) -> int:
 
         fresh = config_dir / "fresh"
         fresh.mkdir()
-        (fresh / ".mcp-server").symlink_to(config_dir / ".mcp-server", target_is_directory=True)
         fresh_client = McpClient(["bash", str(start_script)], {**environment, "VAULT_MCP_CONFIG_DIR": str(fresh)})
         try:
             fresh_client.request("initialize", {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "fresh-vault-smoke", "version": "1.0.0"}})
@@ -457,7 +494,6 @@ def run_smoke(config_dir: Path) -> int:
         ]:
             profile = config_dir / scenario
             profile.mkdir()
-            (profile / ".mcp-server").symlink_to(config_dir / ".mcp-server", target_is_directory=True)
             (profile / ".vault-config.json").write_text(json.dumps({"vaultPath": vault_path, "retrievalRoots": ["."], "excludePaths": exclude_paths}))
             scenario_client = McpClient(["bash", str(start_script)], {**environment, "VAULT_MCP_CONFIG_DIR": str(profile)})
             try:

@@ -2,7 +2,7 @@ import { App, applyDocumentTheme, applyHostStyleVariables, applyHostFonts } from
 import { OpenAIExtensions } from "@openai/mcp-extensions/app";
 import { renderSafeMarkdown } from "./markdown-preview.js";
 
-const app = new App({ name: "obsidian-vault-assistant", version: "0.13.0" });
+const app = new App({ name: "obsidian-vault-assistant", version: "0.16.0" });
 const openaiExtensions = new OpenAIExtensions(app);
 let currentState = null;
 let selection = null;

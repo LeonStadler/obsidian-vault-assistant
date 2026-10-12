@@ -5,20 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Obsidian-Vault verbinden</title>
     <style>
-      :root { color-scheme: light dark; font: 15px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--color-text-primary, CanvasText); background: var(--color-background-primary, Canvas); --oa-accent: var(--color-accent, #8b6cff); --oa-border: var(--color-border-primary, color-mix(in srgb, CanvasText 13%, transparent)); --oa-muted: var(--color-text-secondary, color-mix(in srgb, CanvasText 62%, transparent)); --oa-pane: var(--color-background-secondary, color-mix(in srgb, CanvasText 4%, Canvas)); }
-      body { margin: 0; background: transparent; }
-      main { max-width: 1320px; margin: 0 auto; padding: clamp(18px, 3vw, 36px); }
-      h1 { margin: 0 0 8px; font-size: 22px; line-height: 1.3; letter-spacing: -.025em; }
-      h2 { margin: 0 0 8px; font-size: 18px; line-height: 1.35; letter-spacing: -.015em; }
+      :root { color-scheme: light dark; font: var(--font-size-base, 14px)/1.5 var(--font-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif); color: var(--color-text-primary, CanvasText); background: var(--color-background-primary, Canvas); --oa-accent: var(--color-text-info, var(--color-accent, #0f766e)); --oa-border: var(--color-border-secondary, var(--color-border-primary, color-mix(in srgb, CanvasText 12%, transparent))); --oa-muted: var(--color-text-secondary, color-mix(in srgb, CanvasText 58%, transparent)); --oa-pane: var(--color-background-secondary, color-mix(in srgb, CanvasText 4%, Canvas)); --oa-radius: var(--border-radius-lg, 12px); }
+      body { margin: 0; color: var(--color-text-primary, CanvasText); background: transparent; font-size: 14px; }
+      main { max-width: 1440px; margin: 0 auto; padding: clamp(20px, 3vw, 40px); }
+      main:has(#browser[hidden]) { max-width: 800px; padding-top: clamp(28px, 7vh, 68px); }
+      h1 { margin: 0 0 8px; font-size: 23px; line-height: 1.3; letter-spacing: -.025em; font-weight: 600; }
+      h2 { margin: 0 0 8px; font-size: 17px; line-height: 1.35; letter-spacing: -.015em; font-weight: 600; }
       p { margin: 0 0 18px; color: var(--oa-muted); }
-      .panel { margin: 18px 0; padding: 16px; border: 1px solid var(--oa-border); border-radius: 12px; background: var(--oa-pane); }
+      #setup-description { max-width: 68ch; margin-bottom: 24px; font-size: 14px; }
+      .panel { max-width: 760px; margin: 18px auto; padding: 20px; border: 1px solid var(--oa-border); border-radius: var(--oa-radius); background: var(--color-background-primary, Canvas); box-shadow: 0 1px 2px color-mix(in srgb, CanvasText 4%, transparent); }
+      #disconnected { max-width: 760px; margin: 0 auto; padding: 20px; border: 1px solid var(--oa-border); border-radius: var(--oa-radius); background: var(--oa-pane); }
+      #connected { border-inline-start: 3px solid var(--color-text-success, #3a9b6b); }
+      #selection { box-shadow: 0 2px 8px color-mix(in srgb, CanvasText 5%, transparent); }
       .path { margin-top: 4px; overflow-wrap: anywhere; color: var(--oa-muted); font-size: 13px; }
       label { display: block; margin: 12px 0 6px; font-weight: 600; }
       textarea { box-sizing: border-box; width: 100%; min-height: 88px; padding: 10px 12px; resize: vertical; border: 1px solid var(--oa-border); border-radius: 8px; color: inherit; background: var(--color-background-primary, Canvas); font: inherit; }
-      button { min-height: 38px; padding: 8px 14px; border: 1px solid var(--oa-border); border-radius: 8px; color: inherit; background: var(--oa-pane); font: inherit; font-weight: 600; cursor: pointer; transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease; }
-      button:focus-visible, textarea:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--oa-accent); outline-offset: 2px; }
+      button { min-height: 34px; padding: 6px 11px; border: 1px solid var(--oa-border); border-radius: calc(var(--oa-radius) * .75); color: var(--color-text-primary, CanvasText); background: var(--color-background-secondary, var(--oa-pane)); font: inherit; font-weight: 500; cursor: pointer; transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, transform 120ms ease; }
+      button:hover:not(:disabled) { border-color: color-mix(in srgb, var(--oa-border) 55%, var(--color-text-primary, CanvasText)); background: color-mix(in srgb, var(--color-text-primary, CanvasText) 5%, var(--color-background-secondary, Canvas)); }
+      button:active:not(:disabled) { transform: scale(.985); }
+      button:focus-visible, textarea:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--color-ring-primary, var(--oa-accent)); outline-offset: 2px; }
       button:disabled { cursor: not-allowed; opacity: .58; }
-      .primary { border-color: var(--oa-accent); color: white; background: var(--oa-accent); }
+      .primary { border-color: var(--color-text-primary, #171717); color: var(--color-text-inverse, #fff); background: var(--color-text-primary, #171717); font-weight: 600; }
+      .primary:hover:not(:disabled) { border-color: color-mix(in srgb, var(--color-text-primary, #171717) 82%, transparent); color: var(--color-text-inverse, #fff); background: color-mix(in srgb, var(--color-text-primary, #171717) 82%, transparent); }
       .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
       .notice { min-height: 24px; margin: 14px 0; }
       .warning { margin-top: 12px; padding: 10px 12px; border-inline-start: 3px solid #d99a22; border-radius: 4px; background: color-mix(in srgb, #d99a22 10%, transparent); }
@@ -37,41 +45,42 @@
       .settings-row input { flex: 0 0 auto; width: 17px; height: 17px; margin: 3px 2px 0 0; accent-color: var(--oa-accent); }
       .vault-setting-path { max-width: 70%; overflow-wrap: anywhere; color: var(--oa-muted); font-size: 13px; }
       .connection-state { display: inline-flex; align-items: center; gap: 8px; color: var(--oa-muted); font-size: 13px; }
-      .connection-state::before { width: 8px; height: 8px; border-radius: 50%; background: #49a66d; content: ""; }
-      .browser-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; min-height: 42px; margin: 0 0 10px; padding: 4px 2px 9px; border-bottom: 1px solid var(--oa-border); background: transparent; }
+      .connection-state::before { width: 8px; height: 8px; border-radius: 50%; background: var(--color-text-success, #3a9b6b); content: ""; }
+      .browser-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; min-height: 42px; margin: 0 0 12px; padding: 4px 2px 10px; border-bottom: 1px solid var(--oa-border); background: transparent; }
       .breadcrumbs, .toolbar-options { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
       .breadcrumbs { min-width: 0; }
       .breadcrumbs button { min-height: 30px; padding: 4px 8px; border: 0; color: var(--oa-muted); background: transparent; text-decoration: none; }
       .breadcrumbs button[aria-current="location"] { color: inherit; font-weight: 650; }
       .breadcrumbs button:hover { color: var(--oa-accent); }
       .breadcrumbs .separator { color: var(--oa-muted); opacity: .6; }
-      .browser-root { min-height: 34px; max-width: 240px; padding: 4px 8px; border: 1px solid var(--oa-border); border-radius: 7px; color: inherit; background: var(--color-background-primary, Canvas); font: inherit; }
-      .vault-search { box-sizing: border-box; width: min(330px, 42vw); min-height: 36px; padding: 6px 11px; border: 1px solid var(--oa-border); border-radius: 8px; color: inherit; background: var(--color-background-primary, Canvas); font: inherit; }
-      .browser-layout { display: grid; grid-template-columns: minmax(210px, 270px) minmax(0, 1fr); gap: 12px; min-height: 420px; max-height: calc(100vh - 175px); }
-      .browser-sidebar, .reader { min-width: 0; margin: 0; overflow: hidden; border: 1px solid var(--oa-border); border-radius: 11px; background: var(--oa-pane); }
+      .browser-root { min-height: 34px; max-width: 240px; padding: 4px 8px; border: 1px solid var(--oa-border); border-radius: calc(var(--oa-radius) * .7); color: inherit; background: var(--color-background-primary, Canvas); font: inherit; }
+      .vault-search { box-sizing: border-box; width: min(360px, 42vw); min-height: 34px; padding: 6px 11px; border: 1px solid var(--oa-border); border-radius: calc(var(--oa-radius) * .7); color: inherit; background: var(--color-background-primary, Canvas); font: inherit; }
+      .browser-layout { display: grid; grid-template-columns: minmax(230px, 280px) minmax(0, 1fr); gap: 0; min-height: 460px; max-height: calc(100vh - 175px); overflow: hidden; border: 1px solid var(--oa-border); border-radius: var(--oa-radius); background: var(--color-background-primary, Canvas); box-shadow: 0 1px 3px color-mix(in srgb, CanvasText 5%, transparent); }
+      .browser-sidebar, .reader { min-width: 0; margin: 0; overflow: hidden; border: 0; border-radius: 0; }
+      .browser-sidebar { display: flex; flex-direction: column; border-inline-end: 1px solid var(--oa-border); background: color-mix(in srgb, var(--color-background-secondary, Canvas) 55%, var(--color-background-primary, Canvas)); }
       .pane-heading { display: flex; align-items: center; justify-content: space-between; min-height: 42px; padding: 0 12px; border-bottom: 1px solid var(--oa-border); }
       .pane-heading strong { font-size: 13px; font-weight: 650; }
       .file-count { color: var(--oa-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
-      .browser-list { box-sizing: border-box; margin: 0; padding: 7px; overflow: auto; max-height: calc(100vh - 230px); list-style: none; }
+      .browser-list { box-sizing: border-box; flex: 1; min-height: 0; margin: 0; padding: 7px; overflow: auto; list-style: none; }
       .browser-list li + li { margin-top: 2px; }
       .browser-list button { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 34px; padding: 5px 9px; border-color: transparent; border-radius: 6px; background: transparent; text-align: left; font-size: 13px; font-weight: 450; overflow-wrap: anywhere; }
       .browser-list button:hover { border-color: transparent; background: color-mix(in srgb, var(--oa-accent) 9%, transparent); }
-      .browser-list button.selected { border-inline-start: 2px solid var(--oa-accent); color: var(--oa-accent); background: color-mix(in srgb, var(--oa-accent) 14%, transparent); font-weight: 620; }
+      .browser-list button.selected { border-inline-start: 2px solid var(--oa-accent); color: var(--oa-accent); background: var(--color-background-info, color-mix(in srgb, var(--oa-accent) 11%, transparent)); font-weight: 600; }
       .entry-icon { flex: 0 0 17px; color: var(--oa-muted); font-size: 14px; text-align: center; }
       .browser-list button[data-kind="directory"] .entry-icon { color: color-mix(in srgb, var(--oa-accent) 72%, var(--oa-muted)); }
       .browser-list button.selected .entry-icon { color: var(--oa-accent); }
       .entry-path { flex-basis: 100%; margin-inline-start: 26px; color: var(--oa-muted); font-size: 11px; font-weight: 450; }
       .reader { display: flex; flex-direction: column; background: var(--color-background-primary, Canvas); }
-      .reader-header { padding: 18px 22px 13px; border-bottom: 1px solid var(--oa-border); }
+      .reader-header { padding: 18px 24px 14px; border-bottom: 1px solid var(--oa-border); background: var(--color-background-primary, Canvas); }
       .reader-header h2 { margin: 0; font-size: 20px; }
       .reader-path { margin: 4px 0 0; color: var(--oa-muted); font-size: 12px; overflow-wrap: anywhere; }
       .reader-body { flex: 1; min-height: 0; padding: 14px 22px 22px; overflow: auto; }
-      .reader-mode-tabs { display: flex; gap: 4px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--oa-border); }
-      .reader-mode-tabs button { min-height: 30px; padding: 4px 10px; border-color: transparent; border-radius: 6px; color: var(--oa-muted); background: transparent; font-size: 13px; }
-      .reader-mode-tabs button[aria-pressed="true"] { color: var(--oa-accent); background: color-mix(in srgb, var(--oa-accent) 13%, transparent); }
-      .reader-content { display: block; box-sizing: border-box; width: 100%; min-height: min(54vh, 560px); padding: 4px 0; overflow: auto; resize: vertical; white-space: pre-wrap; overflow-wrap: anywhere; border: 0; border-radius: 0; color: inherit; background: transparent; font: 15px/1.75 var(--font-text, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif); tab-size: 2; }
+      .reader-mode-tabs { display: flex; gap: 16px; width: 100%; margin: 0 auto 16px; padding: 0 0 8px; border-bottom: 1px solid var(--oa-border); }
+      .reader-mode-tabs button { min-height: 32px; padding: 4px 2px 7px; border: 0; border-radius: 0; color: var(--oa-muted); background: transparent; font-size: 13px; }
+      .reader-mode-tabs button[aria-pressed="true"] { border-bottom: 2px solid var(--oa-accent); color: var(--oa-accent); background: transparent; }
+      .reader-content { display: block; box-sizing: border-box; width: 100%; max-width: 78ch; min-height: min(54vh, 560px); margin-inline: auto; padding: 4px 0; overflow: auto; resize: vertical; white-space: pre-wrap; overflow-wrap: anywhere; border: 0; border-radius: 0; color: inherit; background: transparent; font: 15px/1.75 var(--font-text, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif); tab-size: 2; }
       .reader-content:focus-visible { outline-offset: 4px; }
-      .markdown-preview { min-height: min(54vh, 560px); overflow-wrap: anywhere; font: 15px/1.75 var(--font-text, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif); }
+      .markdown-preview { width: 100%; max-width: 78ch; min-height: min(54vh, 560px); margin-inline: auto; overflow-wrap: anywhere; font: 15px/1.75 var(--font-text, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif); }
       .markdown-preview > :first-child { margin-top: 0; }
       .markdown-preview h1, .markdown-preview h2, .markdown-preview h3, .markdown-preview h4, .markdown-preview h5, .markdown-preview h6 { margin: 1.35em 0 .55em; line-height: 1.35; letter-spacing: -.02em; }
       .markdown-preview h1 { padding-bottom: .25em; border-bottom: 1px solid var(--oa-border); font-size: 1.8em; }
@@ -89,10 +98,11 @@
       .markdown-preview a { color: var(--oa-accent); text-decoration: underline; text-underline-offset: 2px; }
       .markdown-preview hr { height: 1px; margin: 1.5em 0; border: 0; background: var(--oa-border); }
       .reader-empty { display: grid; place-items: center; min-height: 300px; margin: 0; color: var(--oa-muted); font-size: 14px; text-align: center; }
-      .reader-actions { padding: 12px 22px 16px; border-top: 1px solid var(--oa-border); }
+      .reader-actions { padding: 12px 22px 16px; border-top: 1px solid var(--oa-border); background: var(--color-background-primary, Canvas); }
       .reader-actions .actions { margin: 0; }
       .reader-notice { margin: 8px 0 0; font-size: 13px; }
-      @media (max-width: 700px) { main { padding: 16px; } .browser-titlebar { align-items: flex-start; } .browser-toolbar { align-items: flex-start; } .browser-layout { grid-template-columns: minmax(0, 1fr); max-height: none; } .browser-list { max-height: 32vh; } .reader { min-height: 44vh; } .reader-header { padding: 15px 16px 11px; } .reader-body { padding: 12px 16px 18px; } .reader-actions { padding: 12px 16px; } .reader-content { min-height: 28vh; } }
+      @media (max-width: 700px) { main { padding: 16px; } .browser-titlebar { align-items: flex-start; } .browser-toolbar { align-items: flex-start; } .toolbar-options { flex: 1 1 100%; width: 100%; } .vault-search { width: 100%; } .browser-layout { grid-template-columns: minmax(0, 1fr); max-height: none; } .browser-sidebar { min-height: 220px; border-inline-end: 0; border-bottom: 1px solid var(--oa-border); } .browser-list { flex: initial; max-height: 32vh; } .reader { min-height: 44vh; } .reader-header { padding: 15px 16px 11px; } .reader-body { padding: 12px 16px 18px; } .reader-actions { padding: 12px 16px; } .reader-content { min-height: 28vh; } }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
       [hidden] { display: none !important; }
     </style>
   </head>
@@ -161,8 +171,8 @@
           <button id="manage-vault" type="button" hidden>Vault verbinden</button>
         </div>
       </section>
-      <section id="disconnected">
-        <button id="choose" type="button">Ordner auswählen</button>
+      <section id="disconnected" aria-label="Vault auswählen">
+        <button id="choose" class="primary" type="button">Ordner auswählen</button>
       </section>
       <section id="connected" class="panel" hidden aria-live="polite">
         <h2>Vault verbunden</h2>
