@@ -36,3 +36,7 @@ Use the `obsidianVaultFilesystem` MCP server for all vault reads and writes.
 - prefer stable hub notes for each area
 - do not create duplicate canonical notes
 - do not rename or move without link awareness
+
+## Host support
+
+Follow [shared host setup instructions](../vault-setup/references/host-support.md) for MCP Apps and tool-only clients.

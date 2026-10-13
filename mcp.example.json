@@ -2,8 +2,10 @@
   "mcpServers": {
     "obsidianVaultFilesystem": {
       "type": "stdio",
-      "command": "bash",
-      "args": ["/Users/YOUR_USER/.codex/plugins/obsidian-vault-assistant/scripts/start-vault-mcp.sh"]
+      "command": "/bin/bash",
+      "args": [
+        "/ABSOLUTER/PAKETPFAD/scripts/launch-host.sh"
+      ]
     }
   }
 }

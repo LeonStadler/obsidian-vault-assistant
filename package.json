@@ -7,8 +7,14 @@
     "build:ui": "node scripts/build-vault-ui.mjs",
     "build:runtime": "node scripts/build-vault-runtime.mjs",
     "build:obsidian": "node scripts/build-obsidian-plugin.mjs",
-    "check": "npm run build:ui && npm run build:runtime && npm run build:obsidian && node --check scripts/vault-mcp-server.mjs && node --check scripts/vault-mcp-server.bundle.mjs && node --check scripts/filesystem-server.bundle.mjs && node --check scripts/vault-scope.mjs && node --check ui/vault-setup.js && node --check ui/markdown-preview.js && bash -n scripts/start-vault-mcp.sh scripts/install-local.sh scripts/configure-vault.sh",
-    "test": "python3 scripts/test-vault-mcp.py"
+    "check": "npm run typecheck && node scripts/check-ui.mjs && npm run build:ui && npm run build:runtime && npm run build:obsidian && node --check scripts/vault-mcp-server.mjs && node --check scripts/vault-mcp-server.bundle.mjs && node --check scripts/filesystem-server.bundle.mjs && node --check scripts/vault-scope.mjs && node --check ui/vault-setup.js && node --check ui/markdown-preview.js && bash -n scripts/start-vault-mcp.sh scripts/install-local.sh scripts/configure-vault.sh",
+    "test": "python3 scripts/test-vault-mcp.py",
+    "typecheck": "tsc --noEmit",
+    "prepare:runtime": "node scripts/prepare-runtime.mjs",
+    "build:packages": "node scripts/build-host-packages.mjs",
+    "check:packages": "node scripts/check-packages.mjs",
+    "test:multi-host": "python3 scripts/test-multi-host.py",
+    "test:ui": "node scripts/test-ui-bridge.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "1.7.5",
@@ -18,9 +24,18 @@
     "dompurify": "3.4.16",
     "markdown-it": "15.0.2",
     "minimatch": "10.2.4",
+    "proper-lockfile": "4.1.2",
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "esbuild": "0.28.2"
+    "@types/markdown-it": "14.2.0",
+    "@types/node": "26.6.5",
+    "@types/proper-lockfile": "4.1.4",
+    "acorn": "8.19.0",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "esbuild": "0.28.2",
+    "jsdom": "30.1.2",
+    "typescript": "7.0.2"
   }
 }

@@ -7,7 +7,6 @@ import json
 import base64
 import os
 import shutil
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -227,7 +226,7 @@ def run_smoke(config_dir: Path) -> int:
         results.append(("configure_vault_ui", setup_uri if setup_uri else "missing UI resource metadata"))
 
         resources = client.request("resources/list").get("resources", [])
-        resource_uri = next((item.get("uri", "") for item in resources if item.get("uri") == "ui://obsidian-vault-assistant/vault-setup-v9.html"), "")
+        resource_uri = next((item.get("uri", "") for item in resources if item.get("uri") == "ui://obsidian-vault-assistant/vault-setup-v10.html"), "")
         resource = client.request("resources/read", {"uri": resource_uri}) if resource_uri else {}
         resource_content = resource.get("contents", [{}])[0]
         resource_html = resource_content.get("text", "")

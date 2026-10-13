@@ -1,8 +1,10 @@
 # Obsidian Vault Assistant
 
-Codex plugin for working with Obsidian vaults locally.
+Local Obsidian plugin with Vault tools, agent workflows, and an integrated viewer and Markdown editor.
 
-Current version: `0.16.0`
+Manifest version: `0.16.0`. The multi-host refactor on this branch is unreleased; version `0.18.0` is reserved until host acceptance.
+
+The existing ChatGPT/Codex desktop integration remains the reference. Cursor, Claude Desktop and Claude Code packages share the same local Vault connection. Their actual acceptance status is documented in [Host compatibility](docs/host-compatibility.md).
 
 ## What it does
 
@@ -49,16 +51,9 @@ This project is independent software and is not affiliated with, endorsed by, or
 
 ## Installation
 
-Install the plugin through Codex Marketplace:
+See [INSTALL.md](INSTALL.md) for host-specific packages and local development. The generated macOS packages include their Node runtime; a source checkout still requires a development runtime. The existing Marketplace baseline is separate from these unpublished test packages.
 
-```bash
-codex plugin marketplace add LeonStadler/obsidian-vault-assistant
-codex plugin add obsidian-vault-assistant@obsidian-vault-assistant
-```
-
-You can also add the marketplace and install the plugin from the Codex interface. Start a new chat after installation. The onboarding skill checks the Vault connection and opens the setup app only if setup or repair is needed. Choose the Vault folder, optionally edit exclusions, and click **Verbinden**. Starter prompts are **Vault verbinden**, **Wissen im Vault suchen**, and **Notiz ergänzen**.
-
-The plugin includes its MCP runtime. Codex needs Node.js 18 or newer to run the local server; it does not need npm, a first-launch package download, or a separate runtime installer. Vault connection and repair happen in the Codex setup app.
+Setup stages the selected folder and connects only after explicit confirmation. Cancellation and errors preserve the current connection. Updates preserve the shared configuration.
 
 Das optionale Obsidian-Plugin in `obsidian-plugin/` ergänzt die Befehle **Obsidian-Notiz an aktuellen Codex-Chat senden** und **Textauswahl an aktuellen Codex-Chat senden**. Baue es mit `npm run build:obsidian`. Kopiere danach `obsidian-plugin/manifest.json` und `obsidian-plugin/main.js` nach `<Vault>/.obsidian/plugins/obsidian-codex-bridge/` und aktiviere es in Obsidian. Die Befehle öffnen die Codex-Übergabeansicht. Prüfe dort Notiz oder Auswahl und klicke **In aktuellen Chat senden**, bevor der Inhalt übermittelt wird. Notizpfade werden über den vorhandenen Vault-MCP-Zugriff, die Ausschlüsse und Symlink-Prüfungen gelesen. Die Übergabe ist auf 6.000 Zeichen für Auswahlen und 24.000 Zeichen für Notizen begrenzt. Die bestehenden Vault-Skills führen weiterhin die gezielte Suche, Anreicherung und Schreibvorgänge aus.
 
@@ -83,10 +78,12 @@ Local developer install:
 ```bash
 git clone https://github.com/LeonStadler/obsidian-vault-assistant.git "$HOME/.codex/plugins/obsidian-vault-assistant"
 cd "$HOME/.codex/plugins/obsidian-vault-assistant"
+npm ci
+npm run check
 scripts/install-local.sh
 ```
 
-The local developer installer registers a clone in Codex. Restart Codex and start a new task so the skills and bundled MCP are loaded. Building from source requires npm; running the installed plugin does not.
+The local developer installer registers a source checkout in Codex. Restart the host and open a new task. Building from source requires Node/npm; regular generated packages do not require a separate runtime.
 
 To change the local Vault later, open the same setup prompt again. The terminal command remains available as a fallback:
 
@@ -94,7 +91,7 @@ To change the local Vault later, open the same setup prompt again. The terminal 
 scripts/configure-vault.sh --select
 ```
 
-The configuration is stored locally in `.vault-path` and `.vault-config.json`; both files are ignored by Git.
+The shared configuration is stored in `~/Library/Application Support/Obsidian Vault Assistant/.vault-config.json`. Existing Codex configuration is migrated without removing the original files. All hosts use the same access rules and preferences.
 
 For Cursor and manual setup, see `INSTALL.md`.
 
@@ -105,6 +102,10 @@ For Cursor and manual setup, see `INSTALL.md`.
 
 ## Notes
 
-- This repository is meant to be shared as a GitHub Codex plugin repo.
-- The plugin is self-contained inside this folder.
+- This repository builds OpenAI, Cursor, Claude Desktop, Claude Code and generic MCP packages from one source.
+- Regular macOS packages contain the runtime; persistent configuration lives outside the package.
 - Filesystem access is local; model processing follows your host and provider settings.
+
+## Architecture and verification
+
+See [Architecture](docs/architecture.md) for the shared typed core, config migration, write locks, and host adapters. [Host compatibility](docs/host-compatibility.md) separates protocol tests, package startup and actual host acceptance.

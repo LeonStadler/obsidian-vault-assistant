@@ -63,3 +63,7 @@ For discovery:
 - treat the entire vault as default chat context
 - retain or repeat unrelated personal, project, or operational details
 - create an automatic Memory note, vector index, or other persistent copy of the context
+
+## Host support
+
+Follow [shared host setup instructions](../vault-setup/references/host-support.md) for MCP Apps and tool-only clients.

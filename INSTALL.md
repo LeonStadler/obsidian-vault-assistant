@@ -1,65 +1,67 @@
 # Installation
 
-## Empfohlener Weg: Codex Marketplace
+## Bestehender Stand und lokale Testpakete
 
-Voraussetzungen: Codex Desktop und Node.js 18 oder neuer. **npm wird für die normale Installation und Nutzung nicht benötigt.**
+Der gesicherte Stand `c8a665e` mit Version `0.16.0` bleibt die Referenz. Der Multi-Host-Refaktor ist noch nicht veröffentlicht. Die hier erzeugten Testpakete enthalten eine eigene Runtime; der bisherige Marketplace-Stand benötigt weiterhin Node.js 18 oder neuer. Es wird keine bereits erfolgte Marketplace-Veröffentlichung vorausgesetzt.
 
-1. Füge das Plugin-Marketplace in Codex hinzu und installiere **Obsidian Vault Assistant**:
+Für die normalen Pakete gilt: **Plugin installieren → Vault auswählen → Pfad und Ausschlüsse prüfen → Verbinden**. npm, Terminalbefehle und eine separat installierte Node-Laufzeit sind bei diesen Paketen nicht erforderlich.
 
-   ```bash
-   codex plugin marketplace add LeonStadler/obsidian-vault-assistant
-   codex plugin add obsidian-vault-assistant@obsidian-vault-assistant
-   ```
+## Pakete für macOS
 
-   Alternativ kannst du das Marketplace und Plugin in der Codex-Oberfläche hinzufügen.
-2. Starte einen neuen Chat, damit Codex die installierten Plugin-Funktionen lädt.
-3. Wähle **Vault verbinden**. Beim ersten Start öffnet Codex den Einrichtungsassistenten.
-4. Wähle im Ordnerdialog deinen Vault aus, prüfe den angezeigten Pfad und klicke **Verbinden**.
+Wähle Apple Silicon (`arm64`) oder Intel (`x64`). Lokal erzeugte Pakete liegen unter `dist/`.
 
-Die Verbindung wird erst nach erfolgreicher Zugriffs- und Schreibprüfung gespeichert. Die bestehende Verbindung bleibt bei Abbruch oder Fehlern erhalten. Standardmäßig sind `.obsidian`, `.git` und `.trash` ausgeschlossen. Die Einstellungen **Vault verwalten** und **Obsidian** öffnen später dieselbe Vault-Verbindung zum Ändern beziehungsweise Durchsuchen.
+- **ChatGPT/Codex Desktop:** OpenAI-Paket über den vom Host angebotenen lokalen Plugin-/Marketplace-Einstieg installieren. Die bestehende Plugin-Identität bleibt erhalten. Nach Installation einen neuen Chat öffnen und **Vault verbinden** wählen.
+- **Cursor:** Cursor-Paket als lokales Plugin beziehungsweise über ein passendes Marketplace installieren. Es enthält Skills, MCP und die gemeinsame MCP-App. Eine separate permanente Sidebar-Erweiterung gehört nicht zum Paket.
+- **Claude Desktop:** `.mcpb` in den Desktop-Erweiterungseinstellungen installieren. Ein dort ausgewählter Vault-Ordner ist nur eine Vorauswahl; erst im Vault-Setup **Verbinden** bestätigen.
+- **Claude Code:** Claude-Code-Paket über dessen Plugin-System installieren. Skills und MCP-Werkzeuge sind enthalten. Bei fehlender App-Oberfläche führt der Setup-Skill durch Auswahl und ausdrückliche Bestätigung.
+- **Weitere MCP-Clients:** Generisches Paket entpacken und den lokalen MCP-Server konfigurieren:
 
-### Was die Installation lokal einrichtet
+```json
+{
+  "mcpServers": {
+    "obsidianVaultFilesystem": {
+      "command": "/bin/bash",
+      "args": ["/ABSOLUTER/PAKETPFAD/scripts/launch-host.sh"]
+    }
+  }
+}
+```
 
-- Die MCP-Runtime ist mit dem Plugin gebündelt. Beim ersten Start werden keine npm-Pakete heruntergeladen und installiert.
-- Node.js 18 oder neuer führt die lokale Runtime aus.
-- Vault-Pfad, Zugriffsbereich und Einstellungen liegen in der lokalen Codex-Konfiguration und bleiben bei Plugin-Updates erhalten.
-- Der Vault wird nicht kopiert oder indexiert. Codex liest nur die freigegebenen Bereiche, die du in der Verbindung festgelegt hast.
+Die tatsächlichen Installationsdialoge und UI-Funktionen werden pro Host abgenommen. Der aktuelle Prüfstand steht ausschließlich in [Host-Kompatibilität](docs/host-compatibility.md). Lokale Testpakete sind nicht signiert/notarisiert und noch nicht für öffentliche Verteilung freigegeben.
 
-Falls Codex meldet, dass `node` fehlt, installiere Node.js 18 oder neuer, starte Codex neu und öffne einen neuen Chat. Du musst weder `npm install` noch `scripts/configure-vault.sh` für die Codex-Einrichtung ausführen.
+## Eine gemeinsame Vault-Verbindung
+
+Alle lokalen Hosts verwenden `~/Library/Application Support/Obsidian Vault Assistant/`. Vorhandene Codex-Einstellungen werden einmalig übernommen, sofern dort noch keine gemeinsame Konfiguration liegt. Die ursprünglichen Dateien bleiben erhalten. Abweichende Altkonfigurationen ersetzen die gemeinsame Verbindung nicht automatisch.
+
+Zum Ändern des Vaults **Vault verwalten** beziehungsweise **Einstellungen** öffnen. Auswahl und Bestätigung sind getrennt. Abbruch oder fehlgeschlagene Verbindung erhalten den bisherigen Vault. Updates und die Deinstallation einzelner Host-Pakete löschen weder Vault-Dateien noch die gemeinsame Konfiguration.
 
 ## Lokale Entwicklung
 
-Für Plugin-Entwicklung werden Node.js 18 oder neuer, npm und Git benötigt. Klone das Repository und registriere es als lokales Codex-Plugin:
+Node.js und npm werden nur für die Entwicklung aus dem Repository benötigt; empfohlen ist dieselbe Node-LTS-Version wie im Paketbuild.
 
 ```bash
-git clone https://github.com/LeonStadler/obsidian-vault-assistant.git "$HOME/Development/obsidian-vault-assistant"
-cd "$HOME/Development/obsidian-vault-assistant"
 npm ci
 npm run check
-scripts/install-local.sh
+npm run prepare:runtime
+npm run build:packages
+npm run check:packages
+npm test
+npm run test:multi-host
+npm run test:ui
 ```
 
-Der Build aktualisiert die gebündelte MCP-Runtime und die Oberflächenressourcen. `scripts/install-local.sh` kopiert den Plugin-Stand in den lokalen Codex-Plugin-Ordner und registriert ihn im persönlichen Marketplace. Starte Codex danach neu und öffne einen neuen Chat. Zum Testen eines unveröffentlichten Builds kannst du den Vault im Codex-Assistenten verbinden; für Automatisierung lässt sich optional `scripts/configure-vault.sh` verwenden.
+`prepare:runtime` lädt die festgelegten macOS-Runtimes mit Prüfsummenprüfung. `build:packages` benötigt diese Dateien, lädt beim Host-Start nichts nach und erzeugt alle fünf Host-Profile für beide Architekturen.
 
-## Cursor und andere MCP-Hosts
-
-Andere Hosts verwenden nicht die Codex-Onboarding-Oberfläche. Richte den Vault einmal mit `scripts/configure-vault.sh` ein und übernimm den Server-Eintrag aus [`mcp.example.json`](mcp.example.json) in die MCP-Konfiguration des Hosts. Passe dort den absoluten Plugin-Pfad an und starte den Host neu.
-
-```bash
-scripts/configure-vault.sh --select
-```
-
-Der Ordnerdialog in diesem Fallback ist macOS-spezifisch. Diese Einrichtung ist nur für andere MCP-Hosts oder Automatisierung vorgesehen; für Codex ist der Marketplace-Assistent der unterstützte Weg.
+`scripts/install-local.sh` registriert weiterhin eine Quellinstallation für OpenAI-Entwicklung. `scripts/configure-vault.sh --select` ist die optionale CLI-Einrichtung über dieselbe Speicher-/Validierungslogik. Für automatisierte Tests ein separates `VAULT_MCP_CONFIG_DIR` setzen. Die reale Konfiguration darf nicht für Erstinstallations-Tests verwendet werden. `node scripts/prepare-host-acceptance.mjs` erstellt getrennte Claude-/Cursor-Testpakete, eine gemeinsame isolierte Konfiguration und ausschließlich künstliche Testnotizen.
 
 ## Fehlerbehebung
 
-- **Der Vault-Assistent öffnet sich nicht:** Stelle sicher, dass das Plugin in Codex installiert und aktiviert ist. Öffne danach einen neuen Chat und nutze **Vault verbinden**.
-- **`node` wurde nicht gefunden:** Installiere Node.js 18 oder neuer und starte Codex neu.
-- **Der Vault ist nicht verfügbar:** Öffne **Vault verwalten**, wähle den verschobenen Vault erneut aus und bestätige die Verbindung.
-- **MCP-Werkzeuge fehlen nach einem Update:** Starte Codex neu und beginne einen neuen Chat, damit die aktualisierte Plugin-Version geladen wird.
+- **Werkzeuge fehlen nach Installation/Update:** Plugin-Aktivierung prüfen, Host neu starten und einen neuen Chat beginnen.
+- **Ein Quellcheckout verlangt Node:** Ein reguläres Paket verwenden oder die Entwicklungs-Laufzeit installieren.
+- **Unvollständiges Paket:** Neu erstellen oder installieren; keine Abhängigkeiten beim ersten Start nachinstallieren.
+- **Vault nicht zugänglich:** Pfad und Rechte prüfen oder über das Setup ausdrücklich neu verbinden.
+- **Konfiguration inzwischen geändert:** Aktuellen Zustand laden und Änderung erneut bestätigen.
+- **Notizkonflikt:** Entwurf behalten, aktuelle Notiz laden und die Änderungen bewusst übernehmen.
+- **Keine Chat-Übergabe:** Der Host bietet diese Fähigkeit nicht an; Lesen und Bearbeiten bleiben nutzbar.
 
-## Entwicklung und Validierung
-
-`npm run check` baut und prüft die Oberflächen und beide Runtime-Bundles. `npm test` startet das gebündelte MCP über stdio mit einem isolierten temporären Vault; der Test entfernt `npm` aus dem Laufzeit-`PATH`, um zu prüfen, dass die Runtime keine Paketinstallation voraussetzt. Der Test verändert deinen verbundenen Vault nicht.
-
-Die echte native Ordnerauswahl und MCP-App-Darstellung müssen zusätzlich in Codex geprüft werden. Der Integrationstest allein bestätigt diese Host-Oberfläche nicht.
+Architektur und Speicher-/Sperrverhalten: [Architektur](docs/architecture.md).

@@ -38,3 +38,7 @@ Use the `obsidianVaultFilesystem` MCP server for all vault reads and writes.
 - project notes
 - SOPs
 - daily notes
+
+## Host support
+
+Follow [shared host setup instructions](../vault-setup/references/host-support.md) for MCP Apps and tool-only clients.

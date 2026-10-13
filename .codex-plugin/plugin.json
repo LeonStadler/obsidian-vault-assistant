@@ -36,11 +36,16 @@
     "defaultPrompt": [
       "Vault verbinden",
       "Wissen im Vault suchen",
-      "Notiz ergänzen"
+      "Notiz erg\u00e4nzen"
     ],
     "brandColor": "#0F766E",
     "composerIcon": "./assets/icon.svg",
     "logo": "./assets/logo.svg",
     "screenshots": []
+  },
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/vault-setup/SKILL.md"
+    }
   }
 }

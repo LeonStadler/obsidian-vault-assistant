@@ -13,6 +13,8 @@ const sharedOptions = {
 };
 
 await Promise.all([
+  build({ ...sharedOptions, entryPoints: ["src/core/configure-cli.ts"], outfile: "scripts/configure-vault.bundle.mjs" }),
+  build({ ...sharedOptions, entryPoints: ["src/core/scope.ts"], outfile: "scripts/vault-scope.bundle.mjs" }),
   build({
     ...sharedOptions,
     entryPoints: ["scripts/vault-mcp-server.mjs"],
