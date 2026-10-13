@@ -52,3 +52,7 @@ Report the classification, vault destination, notes created or updated, evidence
 ## Routing configuration
 
 The routing note is user-owned vault configuration. Keep it readable, additive, and specific to that vault. Use `assets/project-documentation-routing.md` only as a starting template when the routing note is missing; ask before creating or changing it.
+
+## Host support
+
+Follow [shared host setup instructions](../vault-setup/references/host-support.md) for MCP Apps and tool-only clients.

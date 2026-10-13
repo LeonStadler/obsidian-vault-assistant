@@ -39,3 +39,7 @@ Use the `obsidianVaultFilesystem` MCP server for all vault reads.
 - outdated process docs
 - naming inconsistencies
 - markdown convention drift
+
+## Host support
+
+Follow [shared host setup instructions](../vault-setup/references/host-support.md) for MCP Apps and tool-only clients.

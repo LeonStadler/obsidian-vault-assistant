@@ -1,194 +1,67 @@
 # Installation
 
-## Requirements
+## Bestehender Stand und lokale Testpakete
 
-- Codex App, or another MCP-capable client such as Cursor
-- Node.js with `npm`
-- an existing Obsidian vault folder
+Der gesicherte Stand `c8a665e` mit Version `0.16.0` bleibt die Referenz. Der Multi-Host-Refaktor ist noch nicht veröffentlicht. Die hier erzeugten Testpakete enthalten eine eigene Runtime; der bisherige Marketplace-Stand benötigt weiterhin Node.js 18 oder neuer. Es wird keine bereits erfolgte Marketplace-Veröffentlichung vorausgesetzt.
 
-## GitHub marketplace install
+Für die normalen Pakete gilt: **Plugin installieren → Vault auswählen → Pfad und Ausschlüsse prüfen → Verbinden**. npm, Terminalbefehle und eine separat installierte Node-Laufzeit sind bei diesen Paketen nicht erforderlich.
 
-Add the GitHub marketplace to Codex:
+## Pakete für macOS
 
-```bash
-codex plugin marketplace add LeonStadler/obsidian-vault-assistant
-```
+Wähle Apple Silicon (`arm64`) oder Intel (`x64`). Lokal erzeugte Pakete liegen unter `dist/`.
 
-Install `obsidian-vault-assistant` from the marketplace. The marketplace provides the Vault workflows, project documentation skill, bundled MCP definition, and in-Codex Vault setup app.
-
-After installation, use **Vault verbinden**. Codex runs the packaged onboarding skill and opens the setup app when no working connection exists. You can reopen it from the plugin's settings with **Vault verwalten**. In the app, choose the folder, review its full path, optionally change relative exclusions, then click **Verbinden**. New Vaults allow the whole folder except `.obsidian`, `.git`, and `.trash` by default; `Archive`, `Archiv`, and `Attachments` stay accessible.
-
-The Vault settings action opens the plugin's setup app from Codex settings. The app shows a saved connection and lets you change the Vault or its exclusions. The setup skill checks status before opening it, so a valid connection stays available without repeating setup.
-
-In the **Obsidian** sidebar browser, open **Einstellungen** to switch the active Vault, show dotfiles by default, or disable note and filesystem editing. These preferences are stored locally and remain in effect after changing Vaults. A disabled editing setting blocks Vault write tools on the MCP server while leaving reading and search available.
-
-### Optional Obsidian companion plugin
-
-Build it with `npm run build:obsidian`. Copy `obsidian-plugin/manifest.json` and `obsidian-plugin/main.js` into `<Vault>/.obsidian/plugins/obsidian-codex-bridge/`, then enable **Obsidian to Codex** in Obsidian. The commands **Obsidian-Notiz an aktuellen Codex-Chat senden** and **Textauswahl an aktuellen Codex-Chat senden** open the Codex handoff view. Review the content and click **In aktuellen Chat senden** to submit it. Note reads use the already-connected Vault MCP and honor its access scope and exclusions. Existing agent skills continue to search, enrich, and write Vault notes as before.
-
-The UI flow stores `.vault-config.json` locally and does not create a global memory database or vector index. Earlier installations using `.vault-path` and `.vault-config.json` remain readable. The filesystem runtime is installed automatically on first MCP startup when `npm` is available.
-
-Terminal/automation fallback:
-
-```bash
-scripts/install-local.sh
-```
-
-Terminal/automation path:
-
-```bash
-scripts/install-local.sh "$HOME/Documents/Obsidian Vault"
-```
-
-Running the installer without arguments registers the plugin but does not open a folder dialog; complete setup through the Codex onboarding skill. Pass `--select` or a Vault path only when deliberately using the terminal setup. This fallback is not required for the normal Codex UI flow.
-
-## Local install from a clone
-
-Clone the plugin and run the local installer with your vault path:
-
-```bash
-git clone https://github.com/LeonStadler/obsidian-vault-assistant.git "$HOME/.codex/plugins/obsidian-vault-assistant"
-cd "$HOME/.codex/plugins/obsidian-vault-assistant"
-scripts/install-local.sh --select
-```
-
-The installer:
-
-- copies the plugin to `$HOME/.codex/plugins/obsidian-vault-assistant` when needed
-- installs the filesystem MCP server into `.mcp-server/` when using the fallback installer
-- preserves an existing Vault configuration; a fresh install can be configured later through the Codex onboarding skill
-- writes retrieval roots and exclusions to `.vault-config.json` only when a Vault path or `--select` was explicitly supplied
-- configures the bundled `obsidianVaultFilesystem` MCP without a global `codex mcp add` entry
-- registers the plugin in `$HOME/.agents/plugins/marketplace.json`
-
-Restart Codex after installation, then enable `obsidian-vault-assistant` under `Local Plugins` and start a new task.
-
-## Manual install
-
-1. Clone this repository to `$HOME/.codex/plugins/obsidian-vault-assistant`.
-2. Install the MCP server package:
-
-```bash
-mkdir -p .mcp-server
-cp package.json package-lock.json .mcp-server/
-npm ci --prefix .mcp-server --ignore-scripts
-chmod +x "$HOME/.codex/plugins/obsidian-vault-assistant/scripts/start-vault-mcp.sh"
-```
-
-3. Configure the local Vault and retrieval scope:
-
-```bash
-"$HOME/.codex/plugins/obsidian-vault-assistant/scripts/configure-vault.sh" \
-  "$HOME/Documents/Obsidian Vault"
-```
-
-4. Add this plugin entry to `$HOME/.agents/plugins/marketplace.json`:
-
-```json
-{
-  "name": "local-plugins",
-  "interface": {
-    "displayName": "Local Plugins"
-  },
-  "plugins": [
-    {
-      "name": "obsidian-vault-assistant",
-      "source": {
-        "source": "local",
-        "path": "./.codex/plugins/obsidian-vault-assistant"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
-    }
-  ]
-}
-```
-
-5. Restart Codex.
-6. Enable `obsidian-vault-assistant` in the Marketplace and start a new task.
-
-## Cursor and other MCP clients
-
-Use `mcp.example.json` as a template. Replace `YOUR_USER` with your account name or build the paths from `echo $HOME`. For Cursor, run the local setup first so `.vault-path` and `.vault-config.json` exist; Cursor does not use the Codex MCP App setup UI.
+- **ChatGPT/Codex Desktop:** OpenAI-Paket über den vom Host angebotenen lokalen Plugin-/Marketplace-Einstieg installieren. Die bestehende Plugin-Identität bleibt erhalten. Nach Installation einen neuen Chat öffnen und **Vault verbinden** wählen.
+- **Cursor:** Cursor-Paket als lokales Plugin beziehungsweise über ein passendes Marketplace installieren. Es enthält Skills, MCP und die gemeinsame MCP-App. Eine separate permanente Sidebar-Erweiterung gehört nicht zum Paket.
+- **Claude Desktop:** `.mcpb` in den Desktop-Erweiterungseinstellungen installieren. Ein dort ausgewählter Vault-Ordner ist nur eine Vorauswahl; erst im Vault-Setup **Verbinden** bestätigen.
+- **Claude Code:** Claude-Code-Paket über dessen Plugin-System installieren. Skills und MCP-Werkzeuge sind enthalten. Bei fehlender App-Oberfläche führt der Setup-Skill durch Auswahl und ausdrückliche Bestätigung.
+- **Weitere MCP-Clients:** Generisches Paket entpacken und den lokalen MCP-Server konfigurieren:
 
 ```json
 {
   "mcpServers": {
     "obsidianVaultFilesystem": {
-      "command": "bash",
-      "args": [
-        "/Users/YOUR_USER/.codex/plugins/obsidian-vault-assistant/scripts/start-vault-mcp.sh"
-      ]
+      "command": "/bin/bash",
+      "args": ["/ABSOLUTER/PAKETPFAD/scripts/launch-host.sh"]
     }
   }
 }
 ```
 
-For Cursor, merge that entry into `$HOME/.cursor/mcp.json`, then restart Cursor.
+Die tatsächlichen Installationsdialoge und UI-Funktionen werden pro Host abgenommen. Der aktuelle Prüfstand steht ausschließlich in [Host-Kompatibilität](docs/host-compatibility.md). Lokale Testpakete sind nicht signiert/notarisiert und noch nicht für öffentliche Verteilung freigegeben.
 
-## Marketplace paths
+## Eine gemeinsame Vault-Verbindung
 
-Use the right marketplace path for your install type:
+Alle lokalen Hosts verwenden `~/Library/Application Support/Obsidian Vault Assistant/`. Vorhandene Codex-Einstellungen werden einmalig übernommen, sofern dort noch keine gemeinsame Konfiguration liegt. Die ursprünglichen Dateien bleiben erhalten. Abweichende Altkonfigurationen ersetzen die gemeinsame Verbindung nicht automatisch.
 
-| Install type                              | Marketplace file                                | `source.path`                               |
-| ----------------------------------------- | ----------------------------------------------- | ------------------------------------------- |
-| GitHub marketplace repo root              | `.agents/plugins/marketplace.json` in this repo | `./`                                        |
-| Local clone under `$HOME/.codex/plugins/` | `$HOME/.agents/plugins/marketplace.json`        | `./.codex/plugins/obsidian-vault-assistant` |
+Zum Ändern des Vaults **Vault verwalten** beziehungsweise **Einstellungen** öffnen. Auswahl und Bestätigung sind getrennt. Abbruch oder fehlgeschlagene Verbindung erhalten den bisherigen Vault. Updates und die Deinstallation einzelner Host-Pakete löschen weder Vault-Dateien noch die gemeinsame Konfiguration.
 
-The manual install section above shows the local-clone marketplace entry inline.
+## Lokale Entwicklung
 
-## MCP behavior
-
-The Vault path is stored locally and the bundled MCP reads it when it starts. `get_vault_status` returns `unconfigured`, `ready`, `unavailable`, or `invalid`. `configure_vault` renders the setup UI; `choose_vault` returns a temporary selection; `connect_vault` validates the folder and exclusions, tests read/write access, and saves only after success. A failed attempt leaves an existing connection active.
-
-- `scripts/install-local.sh` installs the local runtime and writes `.vault-path` and `.vault-config.json`
-- `scripts/configure-vault.sh --select` opens the macOS Vault and retrieval-scope setup again
-- `scripts/start-vault-mcp.sh` bootstraps the local runtime and starts the configuration-aware MCP proxy; cached plugin copies use the stable local configuration
-- `plugin.json` registers the packaged onboarding skill and the MCP server definition in `mcp.json`; `.codex-plugin/plugin.json` remains synchronized for Codex local plugins
-- `scripts/vault-mcp-server.mjs` exposes the setup tools, structured Codex settings, MCP Apps resource, and validated proxy to the filesystem MCP
-- `ui/vault-setup.html` and `ui/vault-setup.js` provide the accessible in-Codex setup app; `ui/vault-setup.bundle.html` is the locally bundled, offline resource served to Codex
-- the filesystem MCP server is installed locally under `.mcp-server/`
-- startup uses `node` directly instead of `npx`
-- Existing `retrievalRoots` and `excludePaths` are preserved; changing Vaults requires a fresh connection confirmation. Relative `excludePaths` are enforced for reads, writes, moves, and listings; recursive searches prune excluded folders before reading them. Symlink targets are checked against the same scope
-
-The MCP is a retrieval transport, not a global memory database. Search results are loaded only for the current task. The agent does not create an automatic Memory note or a vector index.
-
-The retrieval skills use targeted search terms, start with up to three sources, expand to five only for a concrete gap, reduce large notes to relevant sections, and keep the assembled context below roughly 24,000 characters. Luna is recommended for ordinary Vault retrieval and small edits; switch to a stronger model for broad synthesis or unresolved conflicts.
-
-MCP path rules:
-
-- use absolute vault paths such as `$HOME/Documents/Obsidian Vault/...`
-- relative paths resolve against the MCP process working directory, not the vault root
-- on macOS, full-vault `search_files` scans may return `EPERM`; search a subdirectory instead
-
-If MCP calls fail, use the setup starter prompt again. For clients without MCP App UI, rerun:
+Node.js und npm werden nur für die Entwicklung aus dem Repository benötigt; empfohlen ist dieselbe Node-LTS-Version wie im Paketbuild.
 
 ```bash
-scripts/configure-vault.sh --select
+npm ci
+npm run check
+npm run prepare:runtime
+npm run build:packages
+npm run check:packages
+npm test
+npm run test:multi-host
+npm run test:ui
 ```
 
-Then restart the client.
+`prepare:runtime` lädt die festgelegten macOS-Runtimes mit Prüfsummenprüfung. `build:packages` benötigt diese Dateien, lädt beim Host-Start nichts nach und erzeugt alle fünf Host-Profile für beide Architekturen.
 
-## Local-only files
+`scripts/install-local.sh` registriert weiterhin eine Quellinstallation für OpenAI-Entwicklung. `scripts/configure-vault.sh --select` ist die optionale CLI-Einrichtung über dieselbe Speicher-/Validierungslogik. Für automatisierte Tests ein separates `VAULT_MCP_CONFIG_DIR` setzen. Die reale Konfiguration darf nicht für Erstinstallations-Tests verwendet werden. `node scripts/prepare-host-acceptance.mjs` erstellt getrennte Claude-/Cursor-Testpakete, eine gemeinsame isolierte Konfiguration und ausschließlich künstliche Testnotizen.
 
-These files are created on your machine and must not be committed:
+## Fehlerbehebung
 
-- `.mcp-server/`
-- `.vault-path`
-- `.vault-config.json`
+- **Werkzeuge fehlen nach Installation/Update:** Plugin-Aktivierung prüfen, Host neu starten und einen neuen Chat beginnen.
+- **Ein Quellcheckout verlangt Node:** Ein reguläres Paket verwenden oder die Entwicklungs-Laufzeit installieren.
+- **Unvollständiges Paket:** Neu erstellen oder installieren; keine Abhängigkeiten beim ersten Start nachinstallieren.
+- **Vault nicht zugänglich:** Pfad und Rechte prüfen oder über das Setup ausdrücklich neu verbinden.
+- **Konfiguration inzwischen geändert:** Aktuellen Zustand laden und Änderung erneut bestätigen.
+- **Notizkonflikt:** Entwurf behalten, aktuelle Notiz laden und die Änderungen bewusst übernehmen.
+- **Keine Chat-Übergabe:** Der Host bietet diese Fähigkeit nicht an; Lesen und Bearbeiten bleiben nutzbar.
 
-## What stays local
-
-- Vault content is read from your local machine.
-- The MCP server reads only the configured retrieval roots.
-- The MCP proxy denies access to configured exclusions, including direct requests and symlink aliases.
-- Tool results sent to Codex become part of the model context and may be processed by the configured model provider. The plugin does not independently upload or index Vault contents.
-
-## Validation
-
-Run `npm run check` for JavaScript and shell syntax checks and `npm test` for the real stdio MCP smoke test. Tests create an isolated temporary Vault and configuration, install the locked runtime there, and remove it afterward. They exercise setup, reads, writes, moves, media, exclusions, scope changes, and symlink boundaries. They do not alter your selected Vault. The native folder picker and the rendered MCP App require verification in Codex.
-
-Runtime versions are declared in `package.json` and resolved in `package-lock.json`. Startup uses `npm ci --ignore-scripts` when the runtime is absent or the lockfile changes. `VAULT_MCP_CONFIG_DIR` can explicitly select a separate configuration and runtime directory for tests or automation; normal startup uses the stable local plugin directory.
+Architektur und Speicher-/Sperrverhalten: [Architektur](docs/architecture.md).

@@ -1,0 +1,4 @@
+{
+  "@cfworker/json-schema@4.1.1": "https://raw.githubusercontent.com/cfworker/cfworker/5409fdc2bd144f68e8b28c61c71fcb16600000a6/LICENSE.md",
+  "@modelcontextprotocol/server-filesystem@2026.8.31": "https://raw.githubusercontent.com/modelcontextprotocol/servers/a40bc270fb5ece62673f8a1196f57116d885c5eb/LICENSE"
+}

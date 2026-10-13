@@ -12,8 +12,8 @@ marketplace_dir="$HOME/.agents/plugins"
 marketplace_file="$marketplace_dir/marketplace.json"
 repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
 
-if ! command -v npm >/dev/null 2>&1; then
-  printf 'npm was not found in PATH. Install Node.js first.\n' >&2
+if ! command -v node >/dev/null 2>&1; then
+  printf 'Node.js 18 or later was not found in PATH. Install Node.js to run the plugin. npm is not required.\n' >&2
   exit 69
 fi
 
@@ -43,9 +43,12 @@ if [ -f "$plugin_dir/.vault-path" ]; then
   vault_path="$(tr -d '\n' < "$plugin_dir/.vault-path")"
 fi
 
-mcp_server_dir="$plugin_dir/.mcp-server"
-mkdir -p "$mcp_server_dir"
-bash "$plugin_dir/scripts/install-runtime.sh" "$mcp_server_dir"
+for runtime_bundle in "$plugin_dir/scripts/vault-mcp-server.bundle.mjs" "$plugin_dir/scripts/filesystem-server.bundle.mjs"; do
+  if [ ! -f "$runtime_bundle" ]; then
+    printf 'Missing packaged runtime: %s. Build the plugin package before installing it locally.\n' "$runtime_bundle" >&2
+    exit 70
+  fi
+done
 
 MARKETPLACE_FILE="$marketplace_file" PLUGIN_INSTALL_PATH="$plugin_dir" python3 - <<'PY'
 import json
@@ -95,7 +98,7 @@ printf 'Installed Obsidian Vault Assistant.\n'
 printf 'Plugin: %s\n' "$plugin_dir"
 printf 'Vault path: %s\n' "$vault_path"
 printf 'Marketplace: %s\n' "$marketplace_file"
-printf 'MCP: bundled via .mcp.json and configured locally\n'
+printf 'MCP: self-contained runtime bundle (Node.js required; npm is not)\n'
 if [ "$legacy_mcp_detected" -eq 1 ]; then
   printf 'Notice: an existing global obsidianVaultFilesystem entry was detected; it was not changed. Remove it manually after verifying the bundled MCP.\n'
 fi

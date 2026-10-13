@@ -1,5 +1,87 @@
 # Changelog
 
+## Unreleased — 2026-10-13
+
+Target: `0.18.0` after successful real-host acceptance. Manifest versions remain at the saved `0.16.0` baseline until that acceptance is complete. The user has authorized a PR and merge workflow; publication/release remains separate.
+
+### Features
+
+- `src/core/config-store.ts`, `src/core/types.ts`, and `src/core/lock.ts`: share one macOS Vault configuration outside plugin copies; migrate the legacy Codex connection without deleting it; preserve scope and preferences; add revisions, atomic saves, explicit conflict errors, and a heartbeat-maintained cross-process lock.
+- `src/core/validation.ts`, `src/core/scope.ts`, `src/core/search.ts`, `src/core/notes.ts`, `src/core/folder-selection.ts`, and `src/core/configure-cli.ts`: extract typed access validation, scoped traversal and search, native folder selection, read/write probes, conflict-protected note saving, and the common CLI setup path. Folder selection remains staged until explicit connection.
+- `src/hosts/profiles.ts`, `src/server/tool-definitions.ts`, and `ui/hosts/adapter.ts`: preserve OpenAI sidebar, thread, settings and handoff metadata; provide standard MCP-App metadata for other hosts; negotiate context handoff and deep-link support without unconditional OpenAI initialization. Existing tool names remain compatible; optional `configRevision` parameters protect updates and editor saves, and `choose_vault.vaultPath` supports explicit setup in tool-only hosts.
+- `scripts/prepare-runtime.mjs`, `scripts/build-host-packages.mjs`, `scripts/package-licenses.mjs`, and `scripts/prepare-host-acceptance.mjs`: prepare checksum-verified Node LTS `v24.21.0` and local OpenAI, Cursor, Claude Desktop MCPB, Claude Code, and generic packages for Apple Silicon and Intel; include runtime/dependency licenses and isolated real-host acceptance fixtures. Test artifacts explicitly remain unapproved for publication.
+
+### Fixes
+
+- `scripts/vault-mcp-server.mjs`: renew filesystem connections when another host changes configuration, serialize access against shared configuration updates, preserve preferences and revisions during repair, leave existing access available while the native picker is open, and close the child filesystem connection on stdio shutdown.
+- `ui/controllers/editor.js` and `ui/controllers/settings.js`: reject stale editor saves after shared changes, refresh visible connection/settings on focus without silently discarding drafts, and explain unsupported context handoff.
+- `.codex-plugin/plugin.json`: retain the compatibility identity/version and register the same onboarding skill as the portable manifest.
+
+### Chores
+
+- `ui/controllers/runtime.js`, `ui/controllers/setup.js`, `ui/controllers/browser.js`, `ui/controllers/editor.js`, `ui/controllers/settings.js`, `ui/controllers/handoff.js`, `ui/vault-setup.js`, `ui/vault-setup.html`, and `ui/vault-setup.bundle.html`: split UI responsibilities while retaining the existing view and publish the candidate resource as `vault-setup-v10.html`.
+- `scripts/build-vault-runtime.mjs`, `scripts/vault-mcp-server.bundle.mjs`, `scripts/configure-vault.bundle.mjs`, `scripts/vault-scope.bundle.mjs`, and `scripts/vault-scope.mjs`: bundle the shared implementations and keep compatibility entrypoints. `scripts/configure-vault.sh` and `scripts/start-vault-mcp.sh` use the packaged runtime when present; development checkouts retain their explicit Node prerequisite.
+- `package.json`, `package-lock.json`, `tsconfig.json`, `.gitignore`, `scripts/check-ui.mjs`, `scripts/check-packages.mjs`, `scripts/test-vault-mcp.py`, `scripts/test-multi-host.py`, and `scripts/test-ui-bridge.mjs`: add strict type/syntax checks, package/schema checks, real stdio concurrency/migration/CLI checks, and UI-bridge integration with a real MCP server and simulated host. The existing 84 checks remain green; the expanded suites contain 37 multi-host and 20 UI-bridge checks.
+- `schemas/mcpb-manifest-v0.3.schema.json`, `schemas/MCPB-LICENSE`, `licenses/cfworker-MIT.txt`, `licenses/mcp-servers-MIT.txt`, and `licenses/sources.json`: retain official schemas and pinned upstream license notices. `obsidian-plugin/main.js` is rebuilt with the strict compiler configuration; existing companion commands and routes remain intact.
+
+### Docs
+
+- `README.md`, `INSTALL.md`, `mcp.example.json`, `docs/architecture.md`, and `docs/host-compatibility.md`: describe shared storage, host packages, installation paths, recovery, development, and distinct protocol/package/live-host acceptance states.
+- All existing `skills/*/SKILL.md` files and `skills/vault-setup/references/host-support.md`: retain context/enrichment/documentation workflows and centralize setup guidance for MCP-App and tool-only hosts.
+
+### Host-Abnahme — 2026-10-13
+
+- `scripts/build-host-packages.mjs`, `scripts/prepare-host-acceptance.mjs`, and `scripts/check-packages.mjs`: add and verify Cursor's required local marketplace manifest after the real Cursor importer rejected the initial package layout.
+- `docs/host-compatibility.md`: record the latest Claude setup timeout, the unimported corrected Cursor package, and the untested Codex branch build.
+
+Real OpenAI host parity, complete Cursor/Claude UI acceptance, Intel execution and public signing/notarization remain open. Successful automated checks do not mark those gates complete.
+
+## 0.16.0 — 2026-10-12
+
+### Features
+
+- `scripts/vault-mcp-server.mjs`, `scripts/filesystem-server.bundle.mjs`, `scripts/vault-mcp-server.bundle.mjs`, and `scripts/build-vault-runtime.mjs`: ship both MCP processes as local bundles so first startup does not download or install npm packages.
+- `scripts/start-vault-mcp.sh`: start the bundled runtime directly, require Node.js 18 or newer, and report actionable messages for a missing Node runtime or incomplete plugin package.
+- `scripts/install-local.sh`: register local development installs without installing npm dependencies into the plugin directory.
+- `scripts/test-vault-mcp.py`: validate the packaged runtime while `npm` is absent from its runtime `PATH`, alongside the existing setup, Vault access, search, read, and write checks.
+
+### Docs
+
+- `README.md` and `INSTALL.md`: make Codex Marketplace plus the in-app Vault setup the single recommended installation flow; document Node.js as a runtime prerequisite, separate local development and other MCP hosts, and remove competing manual Codex installation steps.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, `ui/vault-setup.js`, and `README.md`: synchronize version `0.16.0`.
+- `scripts/install-runtime.sh`: remove the first-start npm dependency installer, which is no longer needed by the bundled runtime.
+
+## 0.15.0 — 2026-10-12
+
+### Features
+
+- `ui/vault-setup.html` and generated `ui/vault-setup.bundle.html`: refresh setup, Vault settings, file tree, and Markdown reader with Codex host colors, typography, borders, spacing, reduced-motion support, clearer selected-file state, and a more focused first-connection card.
+- `scripts/vault-mcp-server.mjs`, `ui/vault-setup.js`, and `scripts/test-vault-mcp.py`: publish the refreshed app as `vault-setup-v9.html`; verify first-install manifest wiring, cold runtime installation, setup resources, and host-theme tokens.
+- `scripts/test-vault-mcp.py`: cover first-run unconfigured status, staged folder selection, cancellation and failed-connect preservation, successful read/write, and persisted readiness after restart.
+
+### Docs
+
+- `README.md` and `INSTALL.md`: document host-theme matching and clarify that a new Vault selection remains temporary until the user confirms the connection.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, and `ui/vault-setup.js`: synchronize the plugin and app version to `0.15.0`.
+
+## 0.14.0 — 2026-10-08
+
+### Features
+
+- `README.md`: call out the Obsidian-style viewer and Markdown editor as a built-in Codex feature, and explain navigation, preview, editing, and scope behavior in a dedicated section.
+- `ui/vault-setup.html` and generated `ui/vault-setup.bundle.html`: refine the browser into a continuous Obsidian-like workspace with a connected file tree and note pane, a readable line length for long notes, clearer editor/preview tabs, and a responsive stacked layout.
+- `scripts/vault-mcp-server.mjs`, `scripts/test-vault-mcp.py`, and `ui/vault-setup.js`: publish the refreshed interface under `vault-setup-v8.html` and verify the versioned resource.
+
+### Chores
+
+- `package.json`, `package-lock.json`, `plugin.json`, `.codex-plugin/plugin.json`, and `ui/vault-setup.js`: synchronize the plugin and app version to `0.14.0`.
+
 ## 0.13.0 — 2026-10-07
 
 ### Features

@@ -45,3 +45,7 @@ For a repository-wide project documentation update, use `project-documentation`.
 - duplicating temporary diary material
 - adding unrelated side topics
 - moving content without a good reason
+
+## Host support
+
+Follow [shared host setup instructions](../vault-setup/references/host-support.md) for MCP Apps and tool-only clients.

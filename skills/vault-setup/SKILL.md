@@ -1,6 +1,6 @@
 ---
 name: vault-setup
-description: Connect or repair the local Obsidian Vault Assistant connection in Codex.
+description: Connect or repair the local Obsidian Vault Assistant connection in the connected host.
 ---
 
 # Connect the Obsidian Vault
@@ -15,3 +15,7 @@ Use only the `obsidianVaultFilesystem` MCP from this plugin for Vault setup.
 6. Report the connection result from the tool. If access or validation fails, keep the previous connection and show the actionable error.
 
 Do not use another Obsidian integration, Computer Use, or open Obsidian to configure the plugin. Do not claim the Vault is ready unless `get_vault_status` reports `ready`.
+
+## Host support
+
+Follow [shared host setup instructions](references/host-support.md) for MCP Apps and tool-only clients.
